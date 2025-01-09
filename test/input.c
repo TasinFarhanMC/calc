@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #define FRACTIONAL_BITS 24
 
@@ -14,16 +15,15 @@
 #define OP_LAST OP_PAREN_R
 
 int64_t process_input(const char *str, int64_t *buffer) {
-  int64_t count = 0;
-  int64_t result = 0;
-  int64_t fraction = 0;
   int64_t fraction_div = 1;
 
+  int64_t result = 0;
+  int64_t fraction = 0;
+
+  uint8_t count = 0;
   bool fractional = false;
 
   for (; *str; str++) {
-    const char c = *str;
-
     if (result | fraction) {
       buffer[count++] =
           (result << FRACTIONAL_BITS) +
@@ -36,7 +36,9 @@ int64_t process_input(const char *str, int64_t *buffer) {
       fractional = false;
     }
 
-    if (c >= '0' && c <= '9') {
+    const unsigned char c = *str;
+
+    if (c - '0' <= 9) {
       if (fractional) {
         fraction = fraction * 10 + c - '0';
         fraction_div *= 10;
@@ -81,3 +83,5 @@ int64_t process_input(const char *str, int64_t *buffer) {
 
   return count;
 }
+
+int main() { process_input((void *)2, (void *)2); }

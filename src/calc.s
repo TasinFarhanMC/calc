@@ -6,16 +6,22 @@ cls_str: .ascii "\033[H\033[2J"
 greet_str: .ascii "______ELF_64_CALCULATOR______\n"
 .set GREET_SIZE, . - greet_str
 
+format_str: .asciz "%d\n"
+
 sig_action: .quad exit
 .quad 0x04000000
 
-.section .data
+.section .bss
 
-.set BUF_SIZE, 256
+.set BUF_SIZE, 1096
+
+result_buf: .skip BUF_SIZE
 input_buf: .skip BUF_SIZE
-result_buf: .ascii "done...\n"
-input_size: .quad 0
-result_size: .quad 0
+token_buf: .skip BUF_SIZE
+
+input_size: .skip 4
+token_size: .skip 4
+result_size: .skip 4
 
 .set READ, 0
 .set WRITE, 1
@@ -40,58 +46,116 @@ result_size: .quad 0
 .global  _start
 
 _start:
-	movq $SIG_ACTION, %rax
-	movq $SIGINT, %rdi
-	movq $sig_action, %rsi
-	movq $NULL, %rdx
-	movq $8, %r10
+	movl $SIG_ACTION, %eax
+	movl $SIGINT, %edi
+	movl $sig_action, %esi
+	movl $NULL, %edx
+	movl $8, %r10d
 	syscall
 
-	movq $WRITE, %rax
-	movq $STDOUT, %rdi
-	movq $greet_str, %rsi
-	movq $GREET_SIZE, %rdx
+	movl $WRITE, %eax
+	movl $STDOUT, %edi
+	movl $greet_str, %esi
+	movl $GREET_SIZE, %edx
 	syscall
 
-	movq $8, (result_size)
-	jmp  loop_start
+	jmp loop_start
 
 loop:
-	movq $WRITE, %rax
-	movq $STDOUT, %rdi
-	movq $cls_str, %rsi
-	movq $CLS_SIZE, %rdx
+	movl $WRITE, %eax
+	movl $STDOUT, %edi
+	movl $cls_str, %esi
+	movl $CLS_SIZE, %edx
 	syscall
 
-	movq $WRITE, %rax
-	movq $STDOUT, %rdi
-	movq $greet_str, %rsi
-	movq $GREET_SIZE, %rdx
+	movl $WRITE, %eax
+	movl $STDOUT, %edi
+	movl $greet_str, %esi
+	movl $GREET_SIZE, %edx
 	syscall
 
-	movq $WRITE, %rax
-	movq $STDOUT, %rdi
-	movq $input_buf, %rsi
-	movq (input_size), %rdx
+	movl $WRITE, %eax
+	movl $STDOUT, %edi
+	movl $input_buf, %esi
+	movl (input_size), %edx
 	syscall
 
-	movq $WRITE, %rax
-	movq $STDOUT, %rdi
-	movq $result_buf, %rsi
-	movq (result_size), %rdx
-	syscall
+# movq $WRITE, %rax
+# movq $STDOUT, %rdi
+# movq $result_buf, %rsi
+# movl (result_size), %edx
+# syscall
 
 loop_start:
-	movq $READ, %rax
-	movq $STDIN, %rdi
-	movq $input_buf, %rsi
-	movq $BUF_SIZE, %rdx
+	movl $READ, %eax
+	movl $STDIN, %edi
+	movl $input_buf, %esi
+	movl $BUF_SIZE, %edx
 	syscall
-	movq %rax, (input_size)
 
-	jmp loop
+	movl $input_buf, %ebx # input
+	movl %eax, %ecx # counter
+	xorl %esi, %esi # result
+	xorl %edi, %edi # fraction
+	movl $1, %r8d # fraction_div
+	xorl %r9d, %r9d # count
+	xorb %r10b, %r10b # fractional
+
+	testl %ecx, %ecx
+	jmp   char_loop_start
+
+char_loop:
+	incl %ebx
+	decl %ecx
+
+char_loop_start:
+	jnz  char_loop_body
+	movl %r9d, (token_size)
+	jmp  loop
+
+char_loop_body:
+	movl %esi, %eax
+	xorl %eax, %edi
+	jz   1f
+
+	shlq $32, %rsi
+	shlq $32, %rdi
+
+	movl %r8d, %eax
+	shll $1, %eax
+
+	addq %rdi, %rax
+	xorl %edx, %edx
+	divq %r8
+
+	addq %rsi, %rax
+	movq %rax, token_buf(%r9d)
+	incl %r9d
+
+	xorl %esi, %esi
+	xorl %edi, %edi
+	movl $1, %r8d
+	xorl %r9d, %r9d
+	xorb %r10b, %r10b
+
+1:
+	movb (%ebx), %r11b # char
+
+	movb %r11b, %dl
+	subb $'0', %dl
+	jbe  2f
+
+	testb %r10b, %r10b
+	jz    1f
+	jmp   char_loop
+
+1:
+	jmp char_loop
+
+2:
+	jmp char_loop
 
 exit:
-	movq $EXIT, %rax
-	movq $0, %rdi
+	movl $EXIT, %eax
+	movl $0, %edi
 	syscall
