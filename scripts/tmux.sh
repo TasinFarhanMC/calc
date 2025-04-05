@@ -11,8 +11,6 @@ if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
   tmux select-window -t "$SESSION_NAME":1
 
   tmux attach -t "$SESSION_NAME"
-
-  chromium --auto-open-devtools-for-tabs --window-size=375,812 "https://example.com"
 else
   tmux attach -t "$SESSION_NAME"
 fi
