@@ -1,0 +1,142 @@
+#include <stdint.h>
+#include <stdio.h>
+
+// Token definitions
+#define PAREN_L 0
+#define PAREN_R 1
+#define MUL 2
+#define ADD 3
+#define SUB_U 4
+#define SUB_B 5
+#define DIV 7
+
+#define OP_FIRST (UINT64_C(1) << 63)
+#define OP_LAST (OP_FIRST + DIV)
+#define OP(TOKEN) (TOKEN + OP_FIRST)
+
+#define MAX_TOKENS 1024
+
+// Precedence: higher value means higher precedence.
+int precedence(int64_t op) {
+  switch (op) {
+  case OP(ADD):
+  case OP(SUB_B):
+    return 1;
+  case OP(MUL):
+  case OP(DIV):
+    return 2;
+  default:
+    return 0;
+  }
+}
+
+// Shunting Yard algorithm
+int shunting_yard(const int64_t *input, const int size, int64_t *output) {
+  int64_t stack[MAX_TOKENS];
+  int stack_top = 0;
+  int out_index = 0;
+
+  for (int i = 0; i < size; i++) {
+    int64_t token = input[i];
+
+    // Unary minus handling (SUB_U).
+    if (token == OP(SUB_U)) {
+      stack[stack_top++] = token;
+      continue;
+    }
+
+    // If token is a number, add it directly to the output.
+    if (token >= 0) {
+      output[out_index++] = token;
+      continue;
+    }
+
+    // Left Parenthesis handling (PAREN_L).
+    if (token == OP(PAREN_L)) {
+      stack[stack_top++] = token;
+      continue;
+    }
+
+    // Right Parenthesis handling (PAREN_R).
+    if (token == OP(PAREN_R)) {
+      // Pop operators until left parenthesis.
+      while (stack_top > 0 && stack[stack_top - 1] != OP(PAREN_L)) {
+        output[out_index++] = stack[--stack_top];
+      }
+      if (stack_top > 0 && stack[stack_top - 1] == OP(PAREN_L)) {
+        --stack_top; // Discard left parenthesis.
+      }
+      continue;
+    }
+
+    // Binary operators (ADD, SUB_B, MUL, DIV).
+    while (stack_top > 0) {
+      int64_t top = stack[stack_top - 1];
+
+      // Don't pop operators if they're on the left parenthesis.
+      if (top == OP(PAREN_L)) {
+        break;
+      }
+
+      // Check precedence.
+      if (precedence(token) <= precedence(top)) {
+        output[out_index++] = stack[--stack_top];
+      } else {
+        break;
+      }
+    }
+
+    // Push the operator onto the stack.
+    stack[stack_top++] = token;
+  }
+
+  // Pop any remaining operators off the stack.
+  while (stack_top > 0) {
+    output[out_index++] = stack[--stack_top];
+  }
+
+  return out_index;
+}
+
+char get_str_buf[MAX_TOKENS];
+
+char *get_str(int64_t token) {
+
+  switch (token) {
+  case OP(ADD):
+    return "+";
+  case OP(SUB_U):
+    return "(-)";
+  case OP(SUB_B):
+    return "-";
+  case OP(MUL):
+    return "*";
+  case OP(DIV):
+    return "/";
+  case OP(PAREN_L):
+    return "(";
+  case OP(PAREN_R):
+    return ")";
+  default:
+    snprintf(get_str_buf, sizeof(get_str_buf), "%lu", token);
+    return get_str_buf;
+  }
+}
+
+int main() {
+  // Example usage.
+  int64_t input[] = {3,       OP(MUL),     2, OP(SUB_B),  1,
+                     OP(MUL), OP(PAREN_L), 4, OP(PAREN_R)};
+  int64_t output[MAX_TOKENS];
+  int size = sizeof(input) / sizeof(input[0]);
+
+  int result_size = shunting_yard(input, size, output);
+
+  // Print the output (Reverse Polish Notation result).
+  for (int i = 0; i < result_size; i++) {
+    printf("%s ", get_str(output[i])); // Extract the operator or number.
+  }
+  printf("\n");
+
+  return 0;
+}
