@@ -6,7 +6,7 @@ int64_t rpn(const int64_t *buffer, int size) {
   int stack_size = 0;
 
   for (int i = 0; i < size; i++) {
-    if (buffer[i] == OP(SUB_U)) {
+    if (buffer[i] == OP(NEG)) {
       stack[stack_size - 1] = -stack[stack_size - 1];
       continue;
     }
@@ -25,7 +25,7 @@ int64_t rpn(const int64_t *buffer, int size) {
     case OP(ADD):
       res = a + b;
       break;
-    case OP(SUB_B):
+    case OP(SUB):
       res = a - b;
       break;
     case OP(MUL):

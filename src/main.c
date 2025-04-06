@@ -7,8 +7,7 @@ int shunting_yard(const int64_t *input, const int size, int64_t *output);
 int64_t rpn(const int64_t *buffer, int size);
 
 static const char *const op_token_names[] = {
-    [PAREN_R] = "(", [PAREN_L] = ")", [MUL] = "*", [ADD] = "+",
-    [SUB_U] = "(-)", [SUB_B] = "-",   [DIV] = "/",
+    [RIG] = "(", [LEF] = ")", [MUL] = "*", [ADD] = "+", [NEG] = "(-)", [SUB] = "-", [DIV] = "/",
 };
 
 char get_str_buf[MAX_TOKENS];
@@ -18,21 +17,20 @@ char *get_str(int64_t token) {
   switch (token) {
   case OP(ADD):
     return "+";
-  case OP(SUB_U):
+  case OP(NEG):
     return "(-)";
-  case OP(SUB_B):
+  case OP(SUB):
     return "-";
   case OP(MUL):
     return "*";
   case OP(DIV):
     return "/";
-  case OP(PAREN_L):
+  case OP(LEF):
     return "(";
-  case OP(PAREN_R):
+  case OP(RIG):
     return ")";
   default:
-    snprintf(get_str_buf, sizeof(get_str_buf), "%lf",
-             (double)token / (1UL << 32));
+    snprintf(get_str_buf, sizeof(get_str_buf), "%lf", (double)token / (1UL << 32));
     return get_str_buf;
   }
 }
@@ -48,9 +46,7 @@ int main() {
   int buffer_size = lexer(str, buffer);
 
   printf("\nLexer Output (Tokens): ");
-  for (int i = 0; i < buffer_size; i++) {
-    printf("%s ", get_str(buffer[i]));
-  }
+  for (int i = 0; i < buffer_size; i++) { printf("%s ", get_str(buffer[i])); }
   printf("\n");
 
   // Step 3: Run Shunting Yard Algorithm
@@ -58,9 +54,7 @@ int main() {
   int output_size = shunting_yard(buffer, buffer_size, output);
 
   printf("\nShunting Yard Output (Postfix): ");
-  for (int i = 0; i < output_size; i++) {
-    printf("%s ", get_str(output[i]));
-  }
+  for (int i = 0; i < output_size; i++) { printf("%s ", get_str(output[i])); }
   printf("\n");
 
   // Step 4: Evaluate RPN
