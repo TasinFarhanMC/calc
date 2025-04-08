@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <token.h>
 
-static const int64_t tokens[256] = {
-    ['+'] = OP(ADD), ['*'] = OP(MUL), ['/'] = OP(DIV), ['('] = OP(LEF), [')'] = OP(RIG),
+static const uint8_t tokens[256] = {
+    ['+'] = ADD, ['*'] = MUL, ['/'] = DIV, ['('] = LEF, [')'] = RIG, ['t'] = T,
 };
 
 int lexer(const char *str, int64_t *buffer) {
@@ -12,29 +12,32 @@ int lexer(const char *str, int64_t *buffer) {
   uint64_t result = 0;
   uint64_t fraction = 0;
 
-  uint8_t count = 0;
+  int8_t count = 0;
   bool fractional = false;
   bool number = false;
 
   for (; *str; str++) {
-    const uint8_t c = *str;
+    const char c = *str;
 
     switch (c) {
     case '.':
       fractional = true;
+      number = true;
       continue;
     case ' ':
       continue;
     }
 
     if (c >= '0' && c <= '9') {
+      const uint8_t digit = c - '0';
+
       if (fractional) {
-        fraction = fraction * 10 + c - '0';
+        fraction = fraction * 10 + digit;
         fraction_div *= 10;
         continue;
       }
 
-      result = result * 10 + c - '0';
+      result = result * 10 + digit;
       number = true;
       continue;
     }
@@ -56,7 +59,7 @@ int lexer(const char *str, int64_t *buffer) {
         continue;
       }
 
-      if (IS_NUM(buffer[count - 1]) || buffer[count - 1] == OP(RIG)) {
+      if (!IS_OP(buffer[count - 1]) || buffer[count - 1] == OP(RIG)) {
         buffer[count++] = OP(SUB);
         continue;
       }
@@ -71,7 +74,7 @@ int lexer(const char *str, int64_t *buffer) {
       continue;
 
     default:
-      if (tokens[c]) { buffer[count++] = tokens[c]; }
+      if (tokens[c]) { buffer[count++] = OP(tokens[c]); }
     }
 
     continue;

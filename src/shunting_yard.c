@@ -1,7 +1,6 @@
-#include <stdint.h>
+#include <stdbool.h>
 #include <token.h> // your token definitions and MAX_TOKENS
 
-// Precedence: higher value means higher precedence.
 int precedence(int64_t op) {
   switch (op) {
   case OP(ADD):
@@ -11,14 +10,30 @@ int precedence(int64_t op) {
   case OP(DIV):
     return 2;
   case OP(NEG):
-    return 3; // unary minus gets highest precedence
+    return 3;
   default:
     return 0;
   }
 }
 
-// Only unary minus (NEG) is right-associative.
-int is_right_associative(int64_t op) { return op == OP(NEG); }
+int is_right(int64_t op) {
+  switch (op) {
+  case OP(NEG):
+    return true;
+  default:
+    return false;
+  }
+}
+
+int is_unary(int64_t op) {
+  switch (op) {
+  case OP(NEG):
+  case OP(T):
+    return true;
+  default:
+    return false;
+  }
+}
 
 // shunting_yard converts an infix token array into an RPN token array.
 // It returns the number of tokens written into output.
@@ -31,7 +46,17 @@ int shunting_yard(const int64_t *input, const int size, int64_t *output) {
     int64_t token = input[i];
 
     // In this design, numbers are nonnegative.
-    if (token >= 0) {
+    if (!IS_OP(token)) {
+      output[out_index++] = token;
+      continue;
+    }
+
+    if (is_unary(token)) {
+      if (is_right(token)) {
+        stack[stack_top++] = token;
+        continue;
+      }
+
       output[out_index++] = token;
       continue;
     }
@@ -52,11 +77,6 @@ int shunting_yard(const int64_t *input, const int size, int64_t *output) {
     }
 
     // Handle unary minus (neg) immediately after the operand.
-    if (token == OP(NEG)) {
-      stack[stack_top++] = token;
-      continue;
-    }
-
     // If it's a binary operator, compare precedence.
     while (stack_top > 0) {
       int64_t top = stack[stack_top - 1];
@@ -66,7 +86,7 @@ int shunting_yard(const int64_t *input, const int size, int64_t *output) {
       // If the incoming operator's precedence is less than the top of stack's
       // precedence, or they are equal and the incoming operator is
       // left-associative, then pop from the stack.
-      if (precedence(token) < precedence(top) || (precedence(token) == precedence(top) && !is_right_associative(token))) {
+      if (precedence(token) < precedence(top) || (precedence(token) == precedence(top) && !is_right(token))) {
         output[out_index++] = stack[--stack_top];
       } else {
         break;
