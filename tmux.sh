@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SESSION_NAME="Virtual Kushtia"
+SESSION_NAME="calc"
 
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
   tmux new-session -d -s "$SESSION_NAME"
