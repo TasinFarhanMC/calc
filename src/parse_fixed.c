@@ -11,6 +11,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
 
   CalcU8 is_num = 0;
   CalcU8 is_frac = 0;
+  CalcU8 is_prev_op = 0;
   CalcNum num = {0};
   CalcNum frac = {0};
   CalcUSize frac_div = 1;
@@ -59,6 +60,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
     // If we get here, c is not digit or dot.
     // If a number was being parsed, push it:
     if (is_num) {
+      is_prev_op = 0;
       // Calculate final number with fractional part
       // Add 0.5 to frac.val for rounding: (frac.val + frac_div/2) / frac_div
       num.val = num.val + (frac.val + (frac_div >> 1)) / frac_div;
@@ -75,16 +77,45 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
 
     switch (c) {
     case '+':
+      if (cmd_size == 0 || is_prev_op) { continue; } // Unary Plus
+
       cmd_data[cmd_size++] = CALC_CMD_ADD;
+      is_prev_op = 1;
       continue;
     case '-':
-      cmd_data[cmd_size++] = CALC_CMD_SUB;
+      if (cmd_size == 0) {
+        cmd_data[cmd_size++] = CALC_CMD_NEG;
+        is_prev_op = 1;
+        continue;
+      }
+
+      if (!is_prev_op || cmd_data[cmd_size - 1] == CALC_CMD_R_BRACE) {
+        cmd_data[cmd_size++] = CALC_CMD_SUB;
+        is_prev_op = 1;
+        continue;
+      }
+
+      cmd_data[cmd_size++] = CALC_CMD_NEG;
+      continue;
+    case '*':
+      is_prev_op = 1;
+      cmd_data[cmd_size++] = CALC_CMD_MUL;
+      continue;
+      is_prev_op = 1;
+    case '/':
+      cmd_data[cmd_size++] = CALC_CMD_DIV;
+      continue;
+    case '(':
+      is_prev_op = 1;
+      cmd_data[cmd_size++] = CALC_CMD_L_BRACE;
+      continue;
+    case ')':
+      is_prev_op = 1;
+      cmd_data[cmd_size++] = CALC_CMD_R_BRACE;
       continue;
     default:
       return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR, {}};
     }
-
-    // return (CalcBufsResult) {CALC_ERR_SYNTAX, {}}; // Operator Before Number
   }
 
   // If string ended but number is still being parsed, push it:

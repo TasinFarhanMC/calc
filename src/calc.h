@@ -22,7 +22,6 @@ typedef CalcU32 CalcUSize;
 typedef CalcU16 CalcUHalf;
 
 #elif CALC_NUM_WIDTH == 64
-
 #ifdef CALC_USE_STDLIB
 typedef uint64_t CalcU64;
 #else
@@ -78,6 +77,11 @@ typedef enum {
   CALC_CMD_LOAD,
   CALC_CMD_ADD,
   CALC_CMD_SUB,
+  CALC_CMD_NEG,
+  CALC_CMD_MUL,
+  CALC_CMD_DIV,
+  CALC_CMD_L_BRACE,
+  CALC_CMD_R_BRACE,
 } CalcCmd;
 
 typedef struct {
@@ -120,6 +124,8 @@ typedef struct {
 CalcBufsResult calc_parse_ascii(const char *str, CalcU8 size);
 CalcCmdsResult calc_gen_rpn(const CalcCmds nums);
 CalcNumResult calc_eval_epn(const CalcBufs bufs);
+CalcNumResult calc_mul_num(const CalcNum a, const CalcNum b);
+CalcNumResult calc_div_num(const CalcNum a, const CalcNum b);
 const char *calc_get_err_str(CalcError err);
 
 #ifdef __cplusplus

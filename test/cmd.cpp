@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[]) {
   std::string s;
-  std::cin >> s;
+  std::getline(std::cin, s);
   const char *str = s.c_str();
   auto res = calc_parse_ascii(str, strlen(str));
   auto bufs = res.ok;
