@@ -4,7 +4,7 @@
 static CalcNum num_data[256];
 static CalcCmd cmd_data[256];
 
-CalcBufs parse_string(const char *str, CalcU8 str_size) {
+CalcBufs calc_parse_ascii(const char *str, CalcU8 str_size) {
   CalcU8 num_size = 0;
   CalcU8 cmd_size = 0;
 
@@ -21,6 +21,9 @@ CalcBufs parse_string(const char *str, CalcU8 str_size) {
     case '.':
       is_num = 1;
       is_frac = 1;
+      continue;
+    case '+':
+      cmd_data[cmd_size++] = CALC_CMD_ADD;
       continue;
     case ' ':
     case '\n':
@@ -50,6 +53,8 @@ CalcBufs parse_string(const char *str, CalcU8 str_size) {
       frac_div = 1;
       is_num = 0;
       is_frac = 0;
+      cmd_data[cmd_size++] = CALC_CMD_LOAD;
+      continue;
     }
   }
 

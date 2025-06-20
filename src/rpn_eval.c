@@ -1,3 +1,3 @@
 #include "calc.h"
 
-CalcNum evaluate_rpn(const CalcBufs bufs) {}
+CalcNum calc_eval_epn(const CalcBufs bufs) {}
