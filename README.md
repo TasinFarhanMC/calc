@@ -94,7 +94,7 @@ Evaluates the expression represented by the numeric and command buffers in postf
 
 int main() {
     const char *expr = "3 + 5 - 2";
-    CalcBufs parsed = calc_parse_ascii(expr, 9);
+    CalcBufs parsed = calc_parse_ascii(expr, strlen(expr));
     CalcCmds rpn = calc_gen_rpn(parsed.cmds);
     CalcNum result = calc_eval_epn((CalcBufs){parsed.nums, rpn});
     // Access result.val depending on your configuration (fixed or float)

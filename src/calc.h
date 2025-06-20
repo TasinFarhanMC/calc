@@ -95,9 +95,32 @@ typedef struct {
   CalcCmds cmds;
 } CalcBufs;
 
-CalcBufs calc_parse_ascii(const char *str, CalcU8 size);
-CalcCmds calc_gen_rpn(const CalcCmds nums);
-CalcNum calc_eval_epn(const CalcBufs bufs);
+typedef enum {
+  CALC_ERR_NONE,
+  CALC_ERR_UNKNOWN_CHAR,
+  CALC_ERR_SYNTAX,
+  CALC_ERR_NUM_OVERFLOW,
+} CalcError;
+
+typedef struct {
+  CalcError err;
+  CalcNum ok;
+} CalcNumResult;
+
+typedef struct {
+  CalcError err;
+  CalcCmds ok;
+} CalcCmdsResult;
+
+typedef struct {
+  CalcError err;
+  CalcBufs ok;
+} CalcBufsResult;
+
+CalcBufsResult calc_parse_ascii(const char *str, CalcU8 size);
+CalcCmdsResult calc_gen_rpn(const CalcCmds nums);
+CalcNumResult calc_eval_epn(const CalcBufs bufs);
+const char *calc_get_err_str(CalcError err);
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,8 @@
 #include <iostream>
 
 int main(int argc, char *argv[]) {
-  CalcBufs bufs = calc_parse_ascii("12.25", 5);
+  const char str[] = "12.232 + 123.3";
+  CalcBufs bufs = calc_parse_ascii(str, sizeof(str) - 1).ok;
 
   // assert(bufs.nums.data[0].val == (calc_usize)(12.25f * (1UL << 32)));
 

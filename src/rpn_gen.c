@@ -1,3 +1,3 @@
 #include "calc.h"
 
-CalcCmds calc_gen_rpn(const CalcCmds nums) {}
+CalcCmdsResult calc_gen_rpn(const CalcCmds nums) {}
