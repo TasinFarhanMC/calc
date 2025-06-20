@@ -19,12 +19,16 @@ file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.h")
 add_library(calc ${SRC_FILES})
 target_include_directories(calc PUBLIC ${INCL_DIR})
 
-if(${CALC_NUM_TYPE} EQUAL "F32" OR "F64")
-  target_compile_definitions(calc PUBLIC CALC_NUM_FLOAT
-                                         CALC_NUM_TYPE=${CALC_NUM_TYPE})
-else()
-  target_compile_definitions(calc PUBLIC CALC_NUM_FIXED
-                                         CALC_NUM_TYPE=${CALC_NUM_TYPE})
+if(CALC_NUM_TYPE STREQUAL "X32")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FIXED CALC_NUM_WIDTH=32)
+elseif(CALC_NUM_TYPE STREQUAL "X64")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FIXED CALC_NUM_WIDTH=64)
+elseif(CALC_NUM_TYPE STREQUAL "F32")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FLOAT CALC_NUM_WIDTH=32)
+elseif(CALC_NUM_TYPE STREQUAL "F64")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FLOAT CALC_NUM_WIDTH=64)
+elseif(CALC_NUM_TYPE STREQUAL "F80")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FLOAT CALC_NUM_WIDTH=80)
 endif()
 
 if(CALC_TESTS) # ✅ Fixed the typo

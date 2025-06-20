@@ -1,18 +1,18 @@
 #ifdef CALC_NUM_FIXED
 #include "calc.h"
 
-static Num num_data[256];
-static Cmd cmd_data[256];
+static CalcNum num_data[256];
+static CalcCmd cmd_data[256];
 
-Bufs parse_string(const char *str, calc_u8 str_size) {
-  calc_u8 num_size = 0;
-  calc_u8 cmd_size = 0;
+CalcBufs parse_string(const char *str, CalcU8 str_size) {
+  CalcU8 num_size = 0;
+  CalcU8 cmd_size = 0;
 
-  calc_u8 is_num = 0;
-  calc_u8 is_frac = 0;
-  Num num = {0};
-  Num frac = {0};
-  calc_size frac_div = 1;
+  CalcU8 is_num = 0;
+  CalcU8 is_frac = 0;
+  CalcNum num = {0};
+  CalcNum frac = {0};
+  CalcUSize frac_div = 1;
 
   for (int i = 0; i < str_size; i++) {
     char c = str[i];
@@ -55,6 +55,6 @@ Bufs parse_string(const char *str, calc_u8 str_size) {
 
   if (is_num) { goto NUM; }
 
-  return (Bufs) {{num_data, num_size}, {cmd_data, cmd_size}};
+  return (CalcBufs) {{num_data, num_size}, {cmd_data, cmd_size}};
 }
 #endif /* ifdef CALC_NUM_FIXED */

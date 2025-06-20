@@ -4,66 +4,74 @@
 extern "C" {
 #endif // __cplusplus
 
-typedef unsigned char calc_u8;
-typedef unsigned short calc_u16;
-typedef unsigned int calc_u32;
+typedef unsigned char CalcU8;
+typedef unsigned short CalcU16;
+typedef unsigned int CalcU32;
 
-#if CALC_NUM_TYPE == X64
-typedef unsigned long calc_u64;
-typedef calc_u64 calc_size;
-
+#ifdef CALC_NUM_FIXED
+#if CALC_NUM_WIDTH == 32
+typedef CalcU32 CalcUSize;
+typedef CalcU16 CalcUHalf;
+#elif CALC_NUM_WIDTH == 64
+typedef unsigned long long CalcU64;
+typedef CalcU64 CalcUSize;
+typedef CalcU32 CalcUHalf;
+#else
+#error "Unsupported CALC_NUM_WIDTH for fixed numeric"
+#endif
 typedef union {
   struct {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    calc_u32 low;
-    calc_u32 high;
+    CalcUHalf low;
+    CalcUHalf high;
 #else
-    u32 high;
-    u32 low;
+    CalcUHalf high;
+    CalcUHalf low;
 #endif
   };
-  calc_size val;
-} Num;
-#elif CALC_NUM_TYPE == X32
-typedef calc_u32 calc_size;
-
-typedef union {
-  struct {
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    calc_u16 low;
-    calc_u16 high;
+  CalcUSize val;
+} CalcNum;
+#elif defined(CALC_NUM_FLOAT)
+#if CALC_NUM_WIDTH == 32
+typedef float CalcF32;
+typedef CalcF32 CalcFSize;
+#elif CALC_NUM_WIDTH == 64
+typedef double CalcF64;
+typedef CalcF64 CalcFSize;
+#elif CALC_NUM_WIDTH == 80
+typedef long double CalcF80;
+typedef CalcF80 CalcFSize;
 #else
-    calc_u16 high;
-    calc_u16 low;
-#endif
-  };
-  calc_u16 val;
-} Fx;
+#error "Unsupported CALC_NUM_WIDTH for floating numeric"
+#endif // CALC_NUM_WIDTH == 32
+typedef struct {
+  CalcFSize val;
+} CalcNum;
 #endif
 
 typedef enum {
   CMD_ADD,
   CMD_SUB,
-} Cmd;
+} CalcCmd;
 
 typedef struct {
-  Num *data;
-  calc_u8 size;
-} Nums;
+  CalcNum *data;
+  CalcU8 size;
+} CalcNums;
 
 typedef struct {
-  Cmd *data;
-  calc_u8 size;
-} Cmds;
+  CalcCmd *data;
+  CalcU8 size;
+} CalcCmds;
 
 typedef struct {
-  Nums nums;
-  Cmds cmds;
-} Bufs;
+  CalcNums nums;
+  CalcCmds cmds;
+} CalcBufs;
 
-Bufs parse_string(const char *str, calc_u8 size);
-Cmds generate_rpn(const Cmds nums);
-Num evaluate_rpn(const Bufs bufs);
+CalcBufs parse_string(const char *str, CalcU8 size);
+CalcCmds generate_rpn(const CalcCmds nums);
+CalcNum evaluate_rpn(const CalcBufs bufs);
 
 #ifdef __cplusplus
 }
