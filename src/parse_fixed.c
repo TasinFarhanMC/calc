@@ -1,4 +1,3 @@
-
 #ifdef CALC_NUM_FIXED
 #include "calc.h"
 
@@ -38,11 +37,11 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
 
     if (c >= '0' && c <= '9') {
       CalcU8 digit = c - '0';
-#define NUM_PART_MAX (((CalcUHalf) - 2) / 10)
+      CalcUHalf max = ((CalcUHalf)-2) / 10; // Max Vlaue / 10 - 10 so that when adding digit it doesnt overflow
 
       if (is_frac) {
         // If fractional part overflowed before, skip more digits
-        if (frac.high > NUM_PART_MAX) { continue; } // ignore digit (overflow in fractional part)
+        if (frac.high > max) { continue; } // ignore digit (overflow in fractional part)
 
         frac.high = frac.high * 10 + digit;
         frac_div *= 10;
@@ -50,7 +49,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
         continue;
       }
 
-      if (num.high > NUM_PART_MAX) { return (CalcBufsResult) {CALC_ERR_NUM_OVERFLOW, {}}; } // throw hard error for integer overflow
+      if (num.high > max) { return (CalcBufsResult) {CALC_ERR_NUM_OVERFLOW, {}}; } // throw hard error for integer overflow
 
       num.high = num.high * 10 + digit;
       is_num = 1;
@@ -101,8 +100,8 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
       is_prev_op = 1;
       cmd_data[cmd_size++] = CALC_CMD_MUL;
       continue;
-      is_prev_op = 1;
     case '/':
+      is_prev_op = 1;
       cmd_data[cmd_size++] = CALC_CMD_DIV;
       continue;
     case '(':
