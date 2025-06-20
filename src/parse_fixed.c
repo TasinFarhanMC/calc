@@ -1,6 +1,7 @@
+#ifdef CALC_NUM_FIXED
 #include "calc.h"
 
-static Fx num_data[256];
+static Num num_data[256];
 static Cmd cmd_data[256];
 
 Bufs parse_string(const char *str, calc_u8 str_size) {
@@ -9,8 +10,8 @@ Bufs parse_string(const char *str, calc_u8 str_size) {
 
   calc_u8 is_num = 0;
   calc_u8 is_frac = 0;
-  Fx num = {0};
-  Fx frac = {0};
+  Num num = {0};
+  Num frac = {0};
   calc_size frac_div = 1;
 
   for (int i = 0; i < str_size; i++) {
@@ -56,3 +57,4 @@ Bufs parse_string(const char *str, calc_u8 str_size) {
 
   return (Bufs) {{num_data, num_size}, {cmd_data, cmd_size}};
 }
+#endif /* ifdef CALC_NUM_FIXED */

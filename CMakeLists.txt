@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 project(CALC C CXX) # Enable both C and C++
 
-set(CALC_FX_WIDTH
-    "32"
+set(CALC_NUM_TYPE
+    "X32"
     CACHE STRING "Fixed Point Width")
-set_property(CACHE CALC_FX_WIDTH PROPERTY STRINGS 32 64)
+set_property(CACHE CALC_NUM_TYPE PROPERTY STRINGS "X32" "X64" "F32" "F64" "F80")
 
 option(CALC_TESTS "Build Tests" OFF)
 
@@ -18,7 +18,14 @@ include_directories(${SRC_DIR})
 file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.c" "${SRC_DIR}/*.h")
 add_library(calc ${SRC_FILES})
 target_include_directories(calc PUBLIC ${INCL_DIR})
-target_compile_definitions(calc PUBLIC CALC_FX_WIDTH=${CALC_FX_WIDTH})
+
+if(${CALC_NUM_TYPE} EQUAL "F32" OR "F64")
+  target_compile_definitions(calc PUBLIC CALC_NUM_FLOAT
+                                         CALC_NUM_TYPE=${CALC_NUM_TYPE})
+else()
+  target_compile_definitions(calc PUBLIC CALC_NUM_FIXED
+                                         CALC_NUM_TYPE=${CALC_NUM_TYPE})
+endif()
 
 if(CALC_TESTS) # ✅ Fixed the typo
   include(CTest)

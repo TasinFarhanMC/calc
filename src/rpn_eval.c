@@ -1,3 +1,3 @@
 #include "calc.h"
 
-Fx evaluate_rpn(const Bufs bufs) {}
+Num evaluate_rpn(const Bufs bufs) {}
