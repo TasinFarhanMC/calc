@@ -69,6 +69,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
 }
 #else
 #include <math.h>
+#include <stdlib.h>
 
 CalcError str_to_float(const char **s, CalcFSize *n) {
   const char *p = *s;
