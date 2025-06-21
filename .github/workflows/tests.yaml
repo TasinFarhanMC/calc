@@ -16,7 +16,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         num_type: [Fixed32, Fixed64, Float32, Float64, Float80]
         use_stdlib: [ON, OFF]
-        exclude:
+      exclude:
           - os: windows-latest
             num_type: Float80
 
