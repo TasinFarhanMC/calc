@@ -49,11 +49,11 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
 
     if (*p < '0' || *p > '9') return CALC_ERR_INVALID_FRAC;
 
-    CalcUSize exponent = 0;
+    CalcUMax exponent = 0;
     while (*p >= '0' && *p <= '9') { exponent = exponent * 10 + (*p++ - '0'); }
 
     CalcFSize scale = 1.0f;
-    for (CalcUSize i = 0; i < exponent; ++i) scale *= 10;
+    for (CalcUMax i = 0; i < exponent; ++i) scale *= 10;
 
     if (exp_sign < 0)
       *n /= scale;

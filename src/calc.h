@@ -9,10 +9,12 @@ extern "C" {
 typedef uint8_t CalcU8;
 typedef uint16_t CalcU16;
 typedef uint32_t CalcU32;
+typedef uintmax_t CalcUMax;
 #else
 typedef unsigned char CalcU8;
 typedef unsigned short CalcU16;
 typedef unsigned int CalcU32;
+typedef unsigned long long CalcUMax;
 #endif
 
 #ifdef CALC_NUM_FIXED
