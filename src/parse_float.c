@@ -1,4 +1,5 @@
 #ifdef CALC_NUM_FLOAT
+
 #include "calc.h"
 
 #ifndef CALC_USE_STDLIB

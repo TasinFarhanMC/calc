@@ -1,3 +1,5 @@
+#ifdef CALC_NUM_FLOAT
+
 #include "cmath"
 #include <cstring>
 #include <iostream>
@@ -183,3 +185,5 @@ int main() {
   std::cout << "All tests passed!\n";
   return 0;
 }
+
+#endif

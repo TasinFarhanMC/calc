@@ -1,12 +1,10 @@
+#ifdef CALC_NUM_FLOAT
+
 #include "cmath"
 #include <cstring>
 #include <iostream>
 
-#define CALC_NUM_FLOAT
-#define CALC_NUM_WIDTH 32
-
 #include <calc.h>
-#include <parse_float.c>
 
 // Helper to dump buffers for debug on failure
 void dump_bufs(const CalcBufs &bufs) {
@@ -124,3 +122,5 @@ int main() {
   std::cout << "All tests passed!\n";
   return 0;
 }
+
+#endif
