@@ -26,7 +26,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
   CalcCmd input[] = {CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_LOAD};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_ADD};
 
-  NAME("5 + 7");
+  auto name = "5 + 7";
   auto result = calc_gen_rpn(make_cmds(input, 3));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Output size", result.ok.size == 3);
@@ -36,7 +36,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
 // Test 2: Empty input
 {
   CalcCmd *input = nullptr;
-  NAME("Empty input");
+  auto name = "Empty input";
   auto result = calc_gen_rpn(make_cmds(input, 0));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Empty output", result.ok.size == 0);
@@ -47,7 +47,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
   CalcCmd input[] = {CALC_CMD_L_BRACE, CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_R_BRACE, CALC_CMD_LOAD, CALC_CMD_MUL};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_LOAD, CALC_CMD_MUL};
 
-  NAME("(2 + 3) * 4");
+  auto name = "(2 + 3) * 4";
   auto result = calc_gen_rpn(make_cmds(input, 7));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Size", result.ok.size == 5);
@@ -59,7 +59,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
   CalcCmd input[] = {CALC_CMD_LOAD, CALC_CMD_SUB, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_LOAD};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_SUB, CALC_CMD_LOAD, CALC_CMD_ADD};
 
-  NAME("a - b + c");
+  auto name = "a - b + c";
   auto result = calc_gen_rpn(make_cmds(input, 5));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 5)));
 }
@@ -70,7 +70,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
                      CALC_CMD_ADD,  CALC_CMD_R_BRACE, CALC_CMD_DIV,     CALC_CMD_LOAD};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_MUL, CALC_CMD_LOAD, CALC_CMD_DIV};
 
-  NAME("a * (b + c) / d");
+  auto name = "a * (b + c) / d";
   auto result = calc_gen_rpn(make_cmds(input, 9));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 7)));
 }
@@ -80,7 +80,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
   CalcCmd input[] = {CALC_CMD_NEG, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_LOAD};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_NEG, CALC_CMD_LOAD, CALC_CMD_ADD};
 
-  NAME("-a + b");
+  auto name = "-a + b";
   auto result = calc_gen_rpn(make_cmds(input, 4));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 4)));
 }
@@ -91,7 +91,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
                      CALC_CMD_LOAD,    CALC_CMD_LOAD,    CALC_CMD_SUB,  CALC_CMD_R_BRACE, CALC_CMD_MUL, CALC_CMD_R_BRACE};
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_ADD, CALC_CMD_LOAD, CALC_CMD_LOAD, CALC_CMD_SUB, CALC_CMD_MUL};
 
-  NAME("((a + b) * (c - d))");
+  auto name = "((a + b) * (c - d))";
   auto result = calc_gen_rpn(make_cmds(input, 13));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 7)));
 }
@@ -101,7 +101,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
   CalcCmd input[] = {CALC_CMD_L_BRACE, CALC_CMD_L_BRACE, CALC_CMD_L_BRACE, CALC_CMD_LOAD, CALC_CMD_R_BRACE, CALC_CMD_R_BRACE, CALC_CMD_R_BRACE};
   CalcCmd expected[] = {CALC_CMD_LOAD};
 
-  NAME("(((a)))");
+  auto name = "(((a)))";
   auto result = calc_gen_rpn(make_cmds(input, 7));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 1)));
 }
@@ -115,7 +115,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
 
   CalcCmd expected[] = {CALC_CMD_LOAD, CALC_CMD_NEG, CALC_CMD_LOAD, CALC_CMD_NEG, CALC_CMD_SUB};
 
-  NAME("-a - -b");
+  auto name = "-a - -b";
   auto result = calc_gen_rpn(make_cmds(input, 5));
   TEST_CASE("Match", cmds_equal(result.ok, make_cmds(expected, 5)));
 }

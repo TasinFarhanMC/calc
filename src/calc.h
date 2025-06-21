@@ -125,6 +125,7 @@ typedef enum {
   CALC_ERR_UNKNOWN_CHAR,
   CALC_ERR_INVALID_FRAC,
   CALC_ERR_NUM_OVERFLOW,
+  CALC_ERR_DIV_ZERO,
 } CalcError;
 
 typedef struct {

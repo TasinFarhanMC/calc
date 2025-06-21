@@ -6,6 +6,7 @@ START_TEST();
 
 {
   const char *expr = "123";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("One number", result.ok.nums.size == 1);
@@ -16,6 +17,7 @@ START_TEST();
 
 {
   const char *expr = "-5";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Two cmds", result.ok.cmds.size == 2);
@@ -26,6 +28,7 @@ START_TEST();
 
 {
   const char *expr = "5+7";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Two numbers", result.ok.nums.size == 2);
@@ -39,6 +42,7 @@ START_TEST();
 
 {
   const char *expr = "(2+3)*4";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Three numbers", result.ok.nums.size == 3);
@@ -53,6 +57,7 @@ START_TEST();
 
 {
   const char *expr = "-5+2";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Two numbers", result.ok.nums.size == 2);
@@ -65,18 +70,21 @@ START_TEST();
 
 {
   const char *expr = "5+&7";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("Error unknown char", result.err == CALC_ERR_UNKNOWN_CHAR);
 }
 
 {
   const char *expr = ".5";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("Error invalid frac", result.err == CALC_ERR_INVALID_FRAC);
 }
 
 {
   const char *expr = "1.23e2";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("One number", result.ok.nums.size == 1);
@@ -85,12 +93,14 @@ START_TEST();
 
 {
   const char *expr = "1e9000";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("Error overflow", result.err == CALC_ERR_NUM_OVERFLOW);
 }
 
 {
   const char *expr = "1.23e-2";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value ~ 0.0123", fabs(result.ok.nums.data[0].val - 0.0123) < 0.0001f);
@@ -98,6 +108,7 @@ START_TEST();
 
 {
   const char *expr = "0";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value == 0", result.ok.nums.data[0].val == 0);
@@ -105,6 +116,7 @@ START_TEST();
 
 {
   const char *expr = "-0";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value == 0", result.ok.nums.data[0].val == 0);
@@ -112,6 +124,7 @@ START_TEST();
 
 {
   const char *expr = "123abc";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, 3);
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value == 123", result.ok.nums.data[0].val == 123);
@@ -120,6 +133,7 @@ START_TEST();
 
 {
   const char *expr = "1e-40";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value near zero", fabs(result.ok.nums.data[0].val) < 1e-30f);
@@ -127,12 +141,14 @@ START_TEST();
 
 {
   const char *expr = "nan";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("Unknown char error", result.err == CALC_ERR_UNKNOWN_CHAR);
 }
 
 {
   const char *expr = "+123";
+  auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);
   TEST_CASE("Value == 123", result.ok.nums.data[0].val == 123);
@@ -142,3 +158,4 @@ END_TEST();
 #else
 int main() {}
 #endif // CALC_NUM_FLOAT
+//

@@ -3,7 +3,8 @@
 static CalcNum stack[CALC_BUF_SIZE];
 
 CalcNumResult calc_eval_rpn(const CalcBufs bufs) {
-  CalcU16 sp = 0;
+  CalcU16 sp = 0;    // Stack pointer
+  CalcU16 num_i = 0; // Index into bufs.nums
 
   for (CalcU16 i = 0; i < bufs.cmds.size; i++) {
     CalcCmd cmd = bufs.cmds.data[i];
@@ -13,10 +14,10 @@ CalcNumResult calc_eval_rpn(const CalcBufs bufs) {
       if (sp >= CALC_BUF_SIZE) {
         return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; // Stack overflow
       }
-      if (sp >= bufs.nums.size) {
+      if (num_i >= bufs.nums.size) {
         return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; // Not enough numbers
       }
-      stack[sp++] = bufs.nums.data[sp]; // Load next number by stack index
+      stack[sp++] = bufs.nums.data[num_i++];
       break;
 
     case CALC_CMD_ADD:
