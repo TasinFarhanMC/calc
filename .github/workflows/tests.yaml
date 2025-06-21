@@ -39,7 +39,7 @@ jobs:
 
       - name: Run tests
         working-directory: build
-      k shell: bash
+        shell: bash
         run: |
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             ctest --output-on-failure -C Debug
