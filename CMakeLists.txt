@@ -48,7 +48,7 @@ if(CALC_USE_STDLIB)
   target_compile_definitions(calc PUBLIC CALC_USE_STDLIB)
 endif()
 
-target_compile_definitions(calc PUBLIC CALC_BUF_SIZE=${CALC_BUF_SIZE})
+target_compile_definitions(calc PUBLIC "CALC_BUF_SIZE=${CALC_BUF_SIZE}")
 
 if(CALC_TESTS) # ✅ Floatixed the typo
   set(CMAKE_CXX_STANDARD 11)

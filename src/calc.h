@@ -133,7 +133,7 @@ typedef struct {
 
 CalcBufsResult calc_parse_ascii(const char *str, CalcU16 size);
 CalcCmdsResult calc_gen_rpn(const CalcCmds cmds);
-CalcNumResult calc_eval_epn(const CalcBufs bufs);
+CalcNumResult calc_eval_rpn(const CalcBufs bufs);
 CalcNumResult calc_mul_num(const CalcNum a, const CalcNum b);
 CalcNumResult calc_div_num(const CalcNum a, const CalcNum b);
 const char *calc_get_err_str(CalcError err);
