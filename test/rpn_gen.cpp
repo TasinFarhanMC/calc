@@ -35,7 +35,7 @@ auto print_cmds = [](const char *label, const CalcCmds cmds) {
 
 // Test 2: Empty input
 {
-  CalcCmd input[] = {};
+  CalcCmd *input = nullptr;
   NAME("Empty input");
   auto result = calc_gen_rpn(make_cmds(input, 0));
   TEST_CASE("No error", result.err == CALC_ERR_NONE);

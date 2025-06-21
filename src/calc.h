@@ -17,14 +17,17 @@ typedef unsigned char CalcU8;
 typedef unsigned short CalcU16;
 typedef unsigned int CalcU32;
 typedef unsigned long long CalcUMax;
+
+typedef int Calc32;
 #endif
 
 #ifdef CALC_NUM_FIXED
 
 #if CALC_NUM_WIDTH == 32
 typedef CalcU32 CalcUSize;
-typedef Calc32 CalcSize;
 typedef CalcU16 CalcUHalf;
+
+typedef Calc32 CalcSize;
 
 #elif CALC_NUM_WIDTH == 64
 #ifdef CALC_USE_STDLIB
@@ -37,6 +40,7 @@ typedef long long Calc64;
 
 typedef CalcU64 CalcUSize;
 typedef CalcU32 CalcUHalf;
+
 typedef Calc64 CalcSize;
 
 #else
