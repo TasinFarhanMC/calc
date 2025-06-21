@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure with CMake
+        shell: bash
         run: |
           cmake -B build \
                 -DCALC_NUM_TYPE=${{ matrix.num_type }} \
