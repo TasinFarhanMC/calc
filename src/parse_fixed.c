@@ -1,12 +1,12 @@
 #ifdef CALC_NUM_FIXED
 #include "calc.h"
 
-static CalcNum num_data[256];
-static CalcCmd cmd_data[256];
+static CalcNum num_data[CALC_BUF_SIZE];
+static CalcCmd cmd_data[CALC_BUF_SIZE];
 
-CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
-  CalcU8 num_size = 0;
-  CalcU8 cmd_size = 0;
+CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
+  CalcU16 num_size = 0;
+  CalcU16 cmd_size = 0;
 
   CalcU8 is_num = 0;
   CalcU8 is_frac = 0;

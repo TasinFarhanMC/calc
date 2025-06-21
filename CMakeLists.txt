@@ -7,6 +7,17 @@ set(CALC_NUM_TYPE
 set_property(CACHE CALC_NUM_TYPE PROPERTY STRINGS "Fixed32" "Fixed64" "Float32"
                                           "Float64" "Float80")
 
+set(CALC_BUF_SIZE
+    "1024"
+    CACHE STRING "Max Buffer item size [128, 65535]")
+# Validate buffer size
+if(CALC_BUF_SIZE LESS 128 OR CALC_BUF_SIZE GREATER 65535)
+  message(
+    FATAL_ERROR
+      "CALC_BUF_SIZE must be between 128 and 65535. Current value: ${CALC_BUF_SIZE}"
+  )
+endif()
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
@@ -37,7 +48,12 @@ if(CALC_USE_STDLIB)
   target_compile_definitions(calc PUBLIC CALC_USE_STDLIB)
 endif()
 
+target_compile_definitions(calc PUBLIC CALC_BUF_SIZE=${CALC_BUF_SIZE})
+
 if(CALC_TESTS) # ✅ Floatixed the typo
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
   enable_testing()
   file(GLOB_RECURSE TEST_FILES "${TEST_DIR}/*.cpp" "${TEST_DIR}/*.c")
 

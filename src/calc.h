@@ -94,12 +94,12 @@ typedef enum {
 
 typedef struct {
   CalcNum *data;
-  CalcU8 size;
+  CalcU16 size;
 } CalcNums;
 
 typedef struct {
   CalcCmd *data;
-  CalcU8 size;
+  CalcU16 size;
 } CalcCmds;
 
 typedef struct {
@@ -129,8 +129,8 @@ typedef struct {
   CalcBufs ok;
 } CalcBufsResult;
 
-CalcBufsResult calc_parse_ascii(const char *str, CalcU8 size);
-CalcCmdsResult calc_gen_rpn(const CalcCmds nums);
+CalcBufsResult calc_parse_ascii(const char *str, CalcU16 size);
+CalcCmdsResult calc_gen_rpn(const CalcCmds cmds);
 CalcNumResult calc_eval_epn(const CalcBufs bufs);
 CalcNumResult calc_mul_num(const CalcNum a, const CalcNum b);
 CalcNumResult calc_div_num(const CalcNum a, const CalcNum b);

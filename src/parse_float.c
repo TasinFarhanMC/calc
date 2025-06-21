@@ -49,11 +49,11 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
 
     if (*p < '0' || *p > '9') return CALC_ERR_INVALID_FRAC;
 
-    CalcU32 exponent = 0;
+    CalcUSize exponent = 0;
     while (*p >= '0' && *p <= '9') { exponent = exponent * 10 + (*p++ - '0'); }
 
     CalcFSize scale = 1.0f;
-    for (CalcU32 i = 0; i < exponent; ++i) scale *= 10;
+    for (CalcUSize i = 0; i < exponent; ++i) scale *= 10;
 
     if (exp_sign < 0)
       *n /= scale;
@@ -86,10 +86,10 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
 static CalcNum num_data[256];
 static CalcCmd cmd_data[256];
 
-CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
-  CalcU8 num_size = 0;
-  CalcU8 cmd_size = 0;
-  CalcU8 is_prev_op = 0;
+CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
+  CalcU16 num_size = 0;
+  CalcU16 cmd_size = 0;
+  CalcU16 is_prev_op = 0;
 
   const char *end = str + str_size;
 

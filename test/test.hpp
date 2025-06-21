@@ -13,14 +13,24 @@ static void dump_bufs(const CalcBufs &bufs) {
   std::cerr << std::endl;
 }
 
+static void dump_bufs(const CalcCmds &bufs) {
+  std::cerr << "Cmds (" << (int)bufs.size << "): ";
+  for (int i = 0; i < bufs.size; ++i) std::cerr << bufs.data[i] << " ";
+  std::cerr << std::endl;
+}
+
+static void dump_bufs(const CalcNum &bufs) { std::cerr << "Res :" << bufs.val << "): " << std::endl; }
+
 #define TEST_CASE(DESC, COND)                                                                                                                          \
   do {                                                                                                                                                 \
     if (!(COND)) {                                                                                                                                     \
-      std::cerr << "❌ Test failed: " << (DESC) << std::endl;                                                                                          \
       dump_bufs(result.ok);                                                                                                                            \
+      std::cerr << "❌ Test failed: " << (DESC) << std::endl;                                                                                          \
       return 1;                                                                                                                                        \
     }                                                                                                                                                  \
   } while (0)
+
+#define NAME(name) std::cout << name << ":" << std::endl;
 
 #define START_TEST() int main() {
 
