@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <calc.h>
-#include <parse_float.c>
 
 // Helper to dump buffers for debug on failure
 void dump_bufs(const CalcBufs &bufs) {

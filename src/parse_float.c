@@ -68,7 +68,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
   return CALC_ERR_NONE;
 }
 #else
-#include <stdlib.h>
+#include <math.h>
 
 CalcError str_to_float(const char **s, CalcFSize *n) {
   const char *p = *s;
@@ -76,7 +76,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
   *n = strtold(p, &end);
 
   if (end == p) { return CALC_ERR_INVALID_FRAC; }
-  if (*n > CALC_FSIZE_MAX) { return CALC_ERR_NUM_OVERFLOW; }
+  if (isinf(*n)) { return CALC_ERR_NUM_OVERFLOW; }
 
   *s = end;
   return CALC_ERR_NONE;
