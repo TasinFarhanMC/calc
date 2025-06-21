@@ -4,10 +4,6 @@
 #include <cstring>
 #include <iostream>
 
-#define CALC_NUM_FLOAT
-#define CALC_NUM_WIDTH 32
-#define CALC_USE_STDLIB
-
 #include <calc.h>
 #include <parse_float.c>
 
