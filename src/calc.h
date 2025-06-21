@@ -10,6 +10,8 @@ typedef uint8_t CalcU8;
 typedef uint16_t CalcU16;
 typedef uint32_t CalcU32;
 typedef uintmax_t CalcUMax;
+
+typedef int32_t Calc32;
 #else
 typedef unsigned char CalcU8;
 typedef unsigned short CalcU16;
@@ -21,17 +23,21 @@ typedef unsigned long long CalcUMax;
 
 #if CALC_NUM_WIDTH == 32
 typedef CalcU32 CalcUSize;
+typedef Calc32 CalcSize;
 typedef CalcU16 CalcUHalf;
 
 #elif CALC_NUM_WIDTH == 64
 #ifdef CALC_USE_STDLIB
 typedef uint64_t CalcU64;
+typedef int64_t Calc64;
 #else
 typedef unsigned long long CalcU64;
+typedef long long Calc64;
 #endif
 
 typedef CalcU64 CalcUSize;
 typedef CalcU32 CalcUHalf;
+typedef Calc64 CalcSize;
 
 #else
 #error "Unsupported CALC_NUM_WIDTH for fixed numeric"
@@ -47,6 +53,7 @@ typedef union {
     CalcUHalf low;
 #endif
   };
+
   CalcUSize val;
 } CalcNum;
 
