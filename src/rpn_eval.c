@@ -11,57 +11,61 @@ CalcNumResult calc_eval_rpn(const CalcBufs bufs) {
 
     switch (cmd) {
     case CALC_CMD_LOAD:
-      if (sp >= CALC_BUF_SIZE) {
-        return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; // Stack overflow
-      }
-      if (num_i >= bufs.nums.size) {
-        return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; // Not enough numbers
-      }
+      if (sp >= CALC_BUF_SIZE) { return (CalcNumResult) {CALC_ERR_STACK_OVERFLOW}; }
+      if (num_i >= bufs.nums.size) { return (CalcNumResult) {CALC_ERR_INV_SYNTAX}; } // Not enough numbers
+
       stack[sp++] = bufs.nums.data[num_i++];
       break;
 
     case CALC_CMD_ADD:
-      if (sp < 2) return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR}; // Not enough operands
+      if (sp < 2) return (CalcNumResult) {CALC_ERR_INV_SYNTAX}; // Not enough operands
+
       stack[sp - 2].val += stack[sp - 1].val;
       sp--;
       break;
 
     case CALC_CMD_SUB:
-      if (sp < 2) return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR};
+      if (sp < 2) return (CalcNumResult) {CALC_ERR_INV_SYNTAX};
+
       stack[sp - 2].val -= stack[sp - 1].val;
       sp--;
       break;
 
     case CALC_CMD_MUL: {
-      if (sp < 2) return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR};
+      if (sp < 2) return (CalcNumResult) {CALC_ERR_INV_SYNTAX};
+
       CalcNumResult res = calc_mul_num(stack[sp - 2], stack[sp - 1]);
       if (res.err != CALC_ERR_NONE) return res;
+
       stack[sp - 2] = res.ok;
       sp--;
       break;
     }
 
     case CALC_CMD_DIV: {
-      if (sp < 2) return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR};
+      if (sp < 2) return (CalcNumResult) {CALC_ERR_INV_SYNTAX};
+
       CalcNumResult res = calc_div_num(stack[sp - 2], stack[sp - 1]);
       if (res.err != CALC_ERR_NONE) return res;
+
       stack[sp - 2] = res.ok;
       sp--;
       break;
     }
 
     case CALC_CMD_NEG:
-      if (sp < 1) return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR};
+      if (sp < 1) return (CalcNumResult) {CALC_ERR_INV_SYNTAX};
+
       stack[sp - 1].val = -stack[sp - 1].val;
       break;
 
     default:
-      return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR}; // Invalid operator
+      return (CalcNumResult) {CALC_ERR_INV_SYNTAX}; // Invalid operator
     }
   }
 
   if (sp != 1) {
-    return (CalcNumResult) {CALC_ERR_UNKNOWN_CHAR}; // Invalid final stack state
+    return (CalcNumResult) {CALC_ERR_INV_SYNTAX}; // Invalid final stack state
   }
 
   return (CalcNumResult) {CALC_ERR_NONE, stack[0]};

@@ -9,16 +9,16 @@
 
 CalcNumResult calc_mul_num(const CalcNum a, const CalcNum b) {
   CalcFSize res = a.val * b.val;
-  if (res == CALC_FSIZE_INF) { return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW, {}}; }
+  if (res == CALC_FSIZE_INF) { return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; }
 
   return (CalcNumResult) {CALC_ERR_NONE, {res}};
 }
 
 CalcNumResult calc_div_num(const CalcNum a, const CalcNum b) {
-  if (a.val == 0 || b.val == 0) { return (CalcNumResult) {CALC_ERR_DIV_ZERO, {}}; }
+  if (a.val == 0 || b.val == 0) { return (CalcNumResult) {CALC_ERR_DIV_ZERO}; }
   CalcFSize res = a.val / b.val;
 
-  if (res == CALC_FSIZE_INF) { return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW, {}}; }
+  if (res == CALC_FSIZE_INF) { return (CalcNumResult) {CALC_ERR_NUM_OVERFLOW}; }
   return (CalcNumResult) {CALC_ERR_NONE, {res}};
 }
 

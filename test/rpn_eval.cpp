@@ -1,3 +1,4 @@
+#include "calc.h"
 #include "test.hpp"
 
 START_TEST();
@@ -140,7 +141,7 @@ auto approx_equal = [](float a, float b, float epsilon = 0.0001f) -> bool { retu
 
   auto result = calc_eval_rpn(bufs);
 
-  TEST_CASE("Error returned", result.err == CALC_ERR_UNKNOWN_CHAR);
+  TEST_CASE("Error returned", result.err == CALC_ERR_INV_SYNTAX);
 }
 
 // Test 9: Empty input (no commands)
@@ -156,7 +157,7 @@ auto approx_equal = [](float a, float b, float epsilon = 0.0001f) -> bool { retu
 
   auto result = calc_eval_rpn(bufs);
 
-  TEST_CASE("Error returned", result.err == CALC_ERR_UNKNOWN_CHAR);
+  TEST_CASE("Error returned", result.err == CALC_ERR_INV_SYNTAX);
 }
 
 // Test 10: Negation of sum: 2 3 + NEG = -5
@@ -206,7 +207,7 @@ auto approx_equal = [](float a, float b, float epsilon = 0.0001f) -> bool { retu
 
   auto result = calc_eval_rpn(bufs);
 
-  TEST_CASE("Error returned", result.err == CALC_ERR_NUM_OVERFLOW);
+  TEST_CASE("Error returned", result.err == CALC_ERR_INV_SYNTAX);
 }
 
 // Test 13: Only one number loaded, no operators
@@ -239,7 +240,7 @@ auto approx_equal = [](float a, float b, float epsilon = 0.0001f) -> bool { retu
 
   auto result = calc_eval_rpn(bufs);
 
-  TEST_CASE("Error returned", result.err == CALC_ERR_UNKNOWN_CHAR);
+  TEST_CASE("Error returned", result.err == CALC_ERR_INV_SYNTAX);
 }
 
 END_TEST();

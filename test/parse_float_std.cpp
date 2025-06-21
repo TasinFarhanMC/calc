@@ -79,7 +79,7 @@ START_TEST();
   const char *expr = ".5";
   auto name = expr;
   auto result = calc_parse_ascii(expr, strlen(expr));
-  TEST_CASE("Error invalid frac", result.err == CALC_ERR_INVALID_FRAC);
+  TEST_CASE("Error invalid frac", result.err == CALC_ERR_INV_FRAC);
 }
 
 {

@@ -75,7 +75,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
   char *end;
   *n = strtold(p, &end);
 
-  if (end == p) { return CALC_ERR_INVALID_FRAC; }
+  if (end == p) { return CALC_ERR_INV_FRAC; }
   if (*n == CALC_FSIZE_INF) { return CALC_ERR_NUM_OVERFLOW; }
 
   *s = end;
@@ -102,7 +102,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
     // Number parsing
     if (c >= '0' && c <= '9') {
       CalcError err = str_to_float(&cur, &num_data[num_size++].val);
-      if (err) { return (CalcBufsResult) {err, {}}; }
+      if (err) { return (CalcBufsResult) {err}; }
       cmd_data[cmd_size++] = CALC_CMD_LOAD;
 
       // Break if reached end
@@ -157,8 +157,8 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
       continue;
 
     default:
-      if (c == '.') { return (CalcBufsResult) {CALC_ERR_INVALID_FRAC, {}}; }
-      return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR, {}};
+      if (c == '.') { return (CalcBufsResult) {CALC_ERR_INV_FRAC}; }
+      return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR};
     }
   }
 

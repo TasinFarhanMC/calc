@@ -123,9 +123,11 @@ typedef struct {
 typedef enum {
   CALC_ERR_NONE,
   CALC_ERR_UNKNOWN_CHAR,
-  CALC_ERR_INVALID_FRAC,
+  CALC_ERR_INV_FRAC,
   CALC_ERR_NUM_OVERFLOW,
   CALC_ERR_DIV_ZERO,
+  CALC_ERR_STACK_OVERFLOW,
+  CALC_ERR_INV_SYNTAX,
 } CalcError;
 
 typedef struct {

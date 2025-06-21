@@ -27,7 +27,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
       continue;
     case '.':
       if (is_frac) {
-        return (CalcBufsResult) {CALC_ERR_INVALID_FRAC, {}}; // Already in fractional part — invalid syntax;
+        return (CalcBufsResult) {CALC_ERR_INVALID_FRAC}; // Already in fractional part — invalid syntax;
       }
 
       is_frac = 1;
@@ -49,7 +49,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
         continue;
       }
 
-      if (num.high > max) { return (CalcBufsResult) {CALC_ERR_NUM_OVERFLOW, {}}; } // throw hard error for integer overflow
+      if (num.high > max) { return (CalcBufsResult) {CALC_ERR_NUM_OVERFLOW}; } // throw hard error for integer overflow
 
       num.high = num.high * 10 + digit;
       is_num = 1;
@@ -113,7 +113,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU16 str_size) {
       cmd_data[cmd_size++] = CALC_CMD_R_BRACE;
       continue;
     default:
-      return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR, {}};
+      return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR};
     }
   }
 
