@@ -61,7 +61,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
       *n *= scale;
   }
 
-  if (*n == (CalcFSize)1 / (CalcFSize)0) { return CALC_ERR_NUM_OVERFLOW; }
+  if (*n > CALC_FSIZE_INF) { return CALC_ERR_NUM_OVERFLOW; }
 
   *n *= sign;
   *s = p; // update caller pointer to the new position
@@ -76,7 +76,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
   *n = strtold(p, &end);
 
   if (end == p) { return CALC_ERR_INVALID_FRAC; }
-  if (*n == (CalcFSize)1 / (CalcFSize)0) { return CALC_ERR_NUM_OVERFLOW; }
+  if (*n == CALC_FSIZE_INF) { return CALC_ERR_NUM_OVERFLOW; }
 
   *s = end;
   return CALC_ERR_NONE;

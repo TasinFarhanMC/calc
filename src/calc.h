@@ -53,14 +53,22 @@ typedef union {
 #if CALC_NUM_WIDTH == 32
 typedef float CalcF32;
 typedef CalcF32 CalcFSize;
+#define CALC_FSIZE_INF (*(const CalcFSize *)&(const unsigned long long) {0x7F800000}) // THX windows
 
 #elif CALC_NUM_WIDTH == 64
 typedef double CalcF64;
 typedef CalcF64 CalcFSize;
+#define CALC_FSIZE_INF (*(const CalcFSize *)&(const unsigned long long) {0x7FF0000000000000ULL}) // THX windows
 
 #elif CALC_NUM_WIDTH == 80
 typedef long double CalcF80;
 typedef CalcF80 CalcFSize;
+
+#if defined(_MSC_VER)
+#error "MSVC does not support 80-bit long double"
+#else
+#define CALC_FSIZE_INF ((CalcFSize)1 / (CalcFSize)0) // Windows will FUCK
+#endif
 
 #else
 #error "Unsupported CALC_NUM_WIDTH for floating numeric"
