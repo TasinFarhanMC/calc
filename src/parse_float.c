@@ -76,6 +76,7 @@ CalcError str_to_float(const char **s, CalcFSize *n) {
   *n = strtold(p, &end);
 
   if (end == p) { return CALC_ERR_INVALID_FRAC; }
+  if (*n > CALC_FSIZE_MAX) { return CALC_ERR_NUM_OVERFLOW; }
   if (isinf(*n)) { return CALC_ERR_NUM_OVERFLOW; }
 
   *s = end;
