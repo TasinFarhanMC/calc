@@ -115,7 +115,7 @@ int main() {
 
   {
     // Test 9: Overflow number (too large)
-    const char *expr = "1e400";
+    const char *expr = "1e9000";
     auto result = calc_parse_ascii(expr, strlen(expr));
     TEST_CASE("Error overflow", result.err == CALC_ERR_NUM_OVERFLOW);
   }

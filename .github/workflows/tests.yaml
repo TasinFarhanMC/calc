@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-test:
-    name: ${{ matrix.os }} - ${{ matrix.num_type }} - stdlib_${{ matrix.use_stdlib }}
+    name: ${{ matrix.os }} - ${{ matrix.num_type }} - stdlib=${{ matrix.use_stdlib }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
