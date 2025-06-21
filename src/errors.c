@@ -3,7 +3,7 @@
 static const char *err_str[] = {
     "None",
     "Unknown Charecter",
-    "Invalid Syntax",
+    "Invalid Fraction",
     "Numeric Overflow",
 };
 

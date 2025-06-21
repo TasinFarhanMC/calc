@@ -1,74 +1,85 @@
-#include <stdio.h>
-
 #ifdef CALC_NUM_FLOAT
 #include "calc.h"
 
 #ifndef CALC_USE_STDLIB
-typedef enum {
-  CALC_STRTOF_OK = 0,
-  CALC_STRTOF_OVERFLOW = 1,
-  CALC_STRTOF_UNDERFLOW = 2,
-} CalcStrtofError;
 
-float calc_strtof(const char *s, const char **endptr, CalcStrtofError *error) {
-  float result = 0.0f;
-  float sign = 1.0f;
+CalcError str_to_float(const char **s, CalcFSize *n) {
+  *n = 0.0f;
+  char sign = 1;
+  const char *p = *s;
 
-  // IEEE-754 float limits
-  const float FLT_MAX_ = 3.4028235e+38f;
-  const float FLT_MIN_ = 1.1754944e-38f;
-
-  if (error) *error = CALC_STRTOF_OK;
-
-  // Parse sign
-  if (*s == '-') {
-    sign = -1.0f;
-    s++;
-  } else if (*s == '+') {
-    s++;
+  if (*p == '-') {
+    sign = -1;
+    p++;
+  } else if (*p == '+') {
+    p++;
   }
 
-  // Parse integer part
-  while (*s >= '0' && *s <= '9') {
-    float digit = (float)(*s++ - '0');
-    if (result > (FLT_MAX_ - digit) / 10.0f) {
-      // Overflow
-      if (error) *error = CALC_STRTOF_OVERFLOW;
-      if (endptr) *endptr = s;
-      return sign > 0 ? FLT_MAX_ : -FLT_MAX_;
-    }
-    result = result * 10.0f + digit;
-  }
+  // First digit must be numeric
+  if (*p < '0' || *p > '9') return CALC_ERR_INVALID_FRAC;
+  *n += *p++ - '0';
 
-  // Parse fractional part
-  if (*s == '.') {
-    s++;
-    float base = 0.1f;
-    while (*s >= '0' && *s <= '9') {
-      float digit = (float)(*s++ - '0');
-      result += digit * base;
+  // Integer part
+  while (*p >= '0' && *p <= '9') { *n = *n * 10 + (*p++ - '0'); }
+
+  // Fractional part
+  if (*p == '.') {
+    p++;
+    CalcFSize frac = 0.0f, base = 0.1f;
+    if (*p < '0' || *p > '9') return CALC_ERR_INVALID_FRAC;
+
+    while (*p >= '0' && *p <= '9') {
+      frac += (*p++ - '0') * base;
       base *= 0.1f;
     }
+    *n += frac;
   }
 
-  result *= sign;
+  // Exponential part
+  if (*p == 'e' || *p == 'E') {
+    p++;
+    char exp_sign = 1;
+    if (*p == '-') {
+      exp_sign = -1;
+      p++;
+    } else if (*p == '+') {
+      p++;
+    }
 
-  // Underflow check and clamp
-  if (result != 0.0f && result > -FLT_MIN_ && result < FLT_MIN_) {
-    if (error) *error = CALC_STRTOF_UNDERFLOW;
-    result = (sign < 0) ? -FLT_MIN_ : FLT_MIN_;
+    if (*p < '0' || *p > '9') return CALC_ERR_INVALID_FRAC;
+
+    CalcU32 exponent = 0;
+    while (*p >= '0' && *p <= '9') { exponent = exponent * 10 + (*p++ - '0'); }
+
+    CalcFSize scale = 1.0f;
+    for (CalcU32 i = 0; i < exponent; ++i) scale *= 10;
+
+    if (exp_sign < 0)
+      *n /= scale;
+    else
+      *n *= scale;
   }
 
-  if (endptr) *endptr = s;
-  return result;
+  if (*n > CALC_FSIZE_MAX) { return CALC_ERR_NUM_OVERFLOW; }
+
+  *n *= sign;
+  *s = p; // update caller pointer to the new position
+  return CALC_ERR_NONE;
 }
 #else
 #include <stdlib.h>
-#if CALC_NUM_WIDTH == 32
-#define calc_str_to_num strtof
-#elif CALC_NUM_WIDTH == 64
-#define calc_str_to_num strtod
-#endif
+
+CalcError str_to_float(const char **s, CalcFSize *n) {
+  const char *p = *s;
+  char *end;
+  *n = strtold(p, &end);
+
+  if (end == p) { return CALC_ERR_INVALID_FRAC; }
+  if (*n > CALC_FSIZE_MAX) { return CALC_ERR_NUM_OVERFLOW; }
+
+  *s = end;
+  return CALC_ERR_NONE;
+}
 #endif
 
 static CalcNum num_data[256];
@@ -79,84 +90,73 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
   CalcU8 cmd_size = 0;
   CalcU8 is_prev_op = 0;
 
-  const char *cur = str;
   const char *end = str + str_size;
 
-  while (cur < end) {
+  for (const char *cur = str; cur < end; cur++) {
     char c = *cur;
-    printf("next char %c\n", c);
 
     // Ignore whitespace
-    if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-      cur++;
-      continue;
-    }
+    if (c == ' ' || c == '\t' || c == '\r' || c == '\n') { continue; }
 
     // Number parsing
     if (c >= '0' && c <= '9') {
-      char *num_end;
-      num_data[num_size++].val = calc_str_to_num(cur, &num_end);
-      if (num_end >= end) break; // avoid reading past input
-      cur = num_end;
+      CalcError err = str_to_float(&cur, &num_data[num_size++].val);
+      if (err) { return (CalcBufsResult) {err, {}}; }
+      cmd_data[cmd_size++] = CALC_CMD_LOAD;
+
+      // Break if reached end
+      if (cur == end) { break; }
       is_prev_op = 0;
-      continue;
+      c = *cur;
     }
 
     // Operator and parenthesis parsing
     switch (c) {
     case '+':
-      if (cmd_size == 0 || is_prev_op) {
-        cur++;
-        continue; // Unary plus, skip
-      }
+      // Unary plus, skip
+      if (num_size == 0 || is_prev_op) { continue; }
+
       cmd_data[cmd_size++] = CALC_CMD_ADD;
       is_prev_op = 1;
-      cur++;
       continue;
 
     case '-':
       if (cmd_size == 0) {
         cmd_data[cmd_size++] = CALC_CMD_NEG;
         is_prev_op = 1;
-        cur++;
         continue;
       }
+
       if (!is_prev_op || cmd_data[cmd_size - 1] == CALC_CMD_R_BRACE) {
         cmd_data[cmd_size++] = CALC_CMD_SUB;
         is_prev_op = 1;
-        cur++;
         continue;
       }
       cmd_data[cmd_size++] = CALC_CMD_NEG;
-      cur++;
       continue;
 
     case '*':
       cmd_data[cmd_size++] = CALC_CMD_MUL;
       is_prev_op = 1;
-      cur++;
       continue;
 
     case '/':
       cmd_data[cmd_size++] = CALC_CMD_DIV;
       is_prev_op = 1;
-      cur++;
       continue;
 
     case '(':
       cmd_data[cmd_size++] = CALC_CMD_L_BRACE;
       is_prev_op = 1;
-      cur++;
       continue;
 
     case ')':
       cmd_data[cmd_size++] = CALC_CMD_R_BRACE;
       is_prev_op = 1;
-      cur++;
       continue;
 
     default:
-      if (c == '.') { return (CalcBufsResult) {CALC_ERR_SYNTAX, {}}; }
+      if (c == '.') { return (CalcBufsResult) {CALC_ERR_INVALID_FRAC, {}}; }
       return (CalcBufsResult) {CALC_ERR_UNKNOWN_CHAR, {}};
     }
   }

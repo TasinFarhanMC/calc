@@ -1,7 +1,7 @@
 # Calc
 
 **Calc** is a mathematical expression parser and evaluator written in **C99**.
-It is **freestanding** and optionally interigate **C standard library** to reduce binary size
+It is **freestanding** and can optionally interigate **C standard library** instead of custom implementations
 
 ## Cmake Interigation
 

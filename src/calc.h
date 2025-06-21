@@ -53,14 +53,17 @@ typedef union {
 #if CALC_NUM_WIDTH == 32
 typedef float CalcF32;
 typedef CalcF32 CalcFSize;
+#define CALC_FSIZE_MAX 3.402823466e+38f // FLT_MAX
 
 #elif CALC_NUM_WIDTH == 64
 typedef double CalcF64;
 typedef CalcF64 CalcFSize;
+#define CALC_FSIZE_MAX 1.7976931348623158e+308 // DBL_MAX
 
 #elif CALC_NUM_WIDTH == 80
 typedef long double CalcF80;
 typedef CalcF80 CalcFSize;
+#define CALC_FSIZE_MAX 1.18973149535723176502e+4932L // LDBL_MAX (x86 80-bit)
 
 #else
 #error "Unsupported CALC_NUM_WIDTH for floating numeric"
@@ -102,7 +105,7 @@ typedef struct {
 typedef enum {
   CALC_ERR_NONE,
   CALC_ERR_UNKNOWN_CHAR,
-  CALC_ERR_SYNTAX,
+  CALC_ERR_INVALID_FRAC,
   CALC_ERR_NUM_OVERFLOW,
 } CalcError;
 
