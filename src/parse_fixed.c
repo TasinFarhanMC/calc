@@ -27,7 +27,7 @@ CalcBufsResult calc_parse_ascii(const char *str, CalcU8 str_size) {
       continue;
     case '.':
       if (is_frac) {
-        return (CalcBufsResult) {CALC_ERR_SYNTAX, {}}; // Already in fractional part — invalid syntax;
+        return (CalcBufsResult) {CALC_ERR_INVALID_FRAC, {}}; // Already in fractional part — invalid syntax;
       }
 
       is_frac = 1;
