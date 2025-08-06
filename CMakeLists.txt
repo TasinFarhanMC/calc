@@ -50,17 +50,17 @@ endif()
 
 target_compile_definitions(calc PUBLIC CALC_BUF_SIZE=${CALC_BUF_SIZE})
 
-if(CALC_TESTS) # ✅ Floatixed the typo
-  set(CMAKE_CXX_STANDARD 11)
-  set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+if(CALC_TESTS)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_cpm.cmake)
+
+  cpmaddpackage("gh:catchorg/Catch2@3.9.0")
+
+  file(GLOB_RECURSE TEST_FILES "${TEST_DIR}/*.cpp")
+  add_executable(tests ${TEST_FILES})
+  target_compile_features(tests PRIVATE cxx_std_17)
+  target_link_libraries(tests PRIVATE Catch2::Catch2WithMain calc)
 
   enable_testing()
-  file(GLOB_RECURSE TEST_FILES "${TEST_DIR}/*.cpp" "${TEST_DIR}/*.c")
-
-  foreach(TEST_FILE ${TEST_FILES})
-    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_FILE})
-    target_link_libraries(${TEST_NAME} PRIVATE calc)
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-  endforeach()
+  include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
+  catch_discover_tests(tests)
 endif()

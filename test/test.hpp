@@ -26,6 +26,7 @@ static void dump_bufs(const CalcNum &bufs) { std::cerr << "Res :" << bufs.val <<
     if (!(COND)) {                                                                                                                                     \
       dump_bufs(result.ok);                                                                                                                            \
       std::cerr << "Group: " << name << std::endl;                                                                                                     \
+      std::cerr << "Error: " << calc_get_err_str(result.err) << std::endl;                                                                             \
       std::cerr << "❌ Test failed: " << (DESC) << std::endl;                                                                                          \
       return 1;                                                                                                                                        \
     }                                                                                                                                                  \
