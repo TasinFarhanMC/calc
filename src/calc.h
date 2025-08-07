@@ -65,8 +65,20 @@ CalcNum calc_evaluate_rpn(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullab
 CalcNum calc_evaluate_ascii(const char *str, CalcUInt size, CalcErr *err);           // Nullable Err
 CalcNum calc_evaluate_ascii_to(const char *str, CalcUInt pos, char c, CalcErr *err); // Nullable Err
 
-#ifdef CALC_INT
+#ifdef CALC_ALLOC
+CalcErr calc_parse_ascii_with_alloc(const char *str, CalcUInt size, CalcNums *nums, CalcCmds *cmds);
+CalcErr calc_parse_ascii_to_with_alloc(const char *str, CalcUInt pos, char c, CalcNums *nums, CalcCmds *cmds);
 
+CalcErr calc_to_rpn_with_alloc(CalcCmds cmds);
+CalcErr calc_gen_rpn_with_alloc(CalcCmds cmds, CalcCmds *rpn);
+
+CalcNum calc_evaluate_rpn_with_alloc(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
+
+CalcNum calc_evaluate_ascii_with_alloc(const char *str, CalcUInt size, CalcErr *err);           // Nullable Err
+CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUInt pos, char c, CalcErr *err); // Nullable Err
+#endif
+
+#ifdef CALC_INT
 #ifdef CALC_WIDE_INT
 #define calc_mul_fixed()
 #define calc_div_fixed()
@@ -77,6 +89,10 @@ CalcNum calc_div_fixed(CalcNum a, CalcNum b);
 
 CalcNum calc_mul_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
 CalcNum calc_div_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
+
+// TODO:
+// CalcUInt calc_fixed_to_asciz(CalcNum, char*, ...);
+// CalcUInt calc_fixed_to_asciz_with_alloc(CalcNum. char**, ...);
 #endif // CALC_INT
 
 const char *calc_debug_str(CalcErr err);
