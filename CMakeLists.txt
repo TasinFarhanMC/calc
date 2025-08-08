@@ -12,8 +12,15 @@ set(TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test")
 add_library(Calc INTERFACE ${SRC_DIR}/calc.h)
 target_include_directories(Calc INTERFACE ${SRC_DIR})
 
-add_library(CalcWithImpl STATIC ${SRC_DIR}/calc.c)
-target_link_libraries(CalcWithImpl PRIVATE Calc)
+if(DEFINED CALC_FLOAT OR DEFINED CALC_INT)
+  add_library(CalcWithImpl STATIC ${SRC_DIR}/calc.c)
+  target_link_libraries(CalcWithImpl PRIVATE Calc)
+else()
+  message(
+    WARNING
+      "Skipping building CalcWithImpl target because neither CALC_INT nor CALC_FLOAT is defined"
+  )
+endif()
 
 function(add_macro name)
   if(DEFINED ${name})

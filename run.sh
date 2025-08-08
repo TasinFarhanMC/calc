@@ -10,5 +10,4 @@ if [[ ! -d "$DIR/build" || "$1" ]]; then
 fi
 
 cmake --build --preset debug
-cd build/debug
-ctest -V
+./bin/tests
