@@ -5,9 +5,25 @@ set -e
 DIR="$(dirname "$(realpath "$0")")"
 cd "$DIR"
 
-if [[ ! -d "$DIR/build" || "$1" ]]; then
-  cmake --preset debug -G Ninja
-fi
+echo "Press 'r' to rerun cmake, 'g' to run gdb, or Enter to build and run gdb:"
+read -r -n1 key
+echo
 
-cmake --build --preset debug
-./bin/tests
+if [[ "$key" == "r" ]]; then
+  echo "Running cmake configuration..."
+  cmake --preset debug -G Ninja
+  echo "Building..."
+  cmake --build --preset debug
+  echo "Running..."
+  ./bin/tests
+elif [[ "$key" == "g" ]]; then
+  echo "Building..."
+  cmake --build --preset debug
+  echo "Running gdb..."
+  gdb ./bin/tests
+else
+  echo "Building..."
+  cmake --build --preset debug
+  echo "Running..."
+  ./bin/tests
+fi

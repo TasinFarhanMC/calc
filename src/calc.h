@@ -50,34 +50,42 @@ typedef enum {
   CALC_ERR_INVALID_SYNTAX,
 } CalcErr;
 
+#ifdef CALC_IMPLEMENTATION
+#define CALC_LINKAGE extern
+#elif defined(CALC_STATIC_IMPLEMENTATION)
+#define CALC_LINKAGE static
+#endif
+
 #define CALC_NUMS (CalcNums) {0, 0, 0}
 #define CALC_CMDS (CalcCmds) {0, 0, 0}
 
 #define CALC_NUMS_FROM_ARR(arr) (CalcNums) {arr, 0, 0}
 #define CALC_CMDS_FROM_ARR(arr) (CalcCmds) {arr, 0, 0}
 
-CalcErr calc_parse_ascii(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
-CalcErr calc_parse_ascii_to(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcErr calc_parse_ascii(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcErr calc_parse_ascii_to(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
 
-CalcErr calc_to_rpn(CalcCmds cmds);
-CalcErr calc_gen_rpn(CalcCmds cmds, CalcCmds *rpn);
+CALC_LINKAGE CalcErr calc_to_rpn(CalcCmds cmds);
+CALC_LINKAGE CalcErr calc_gen_rpn(CalcCmds cmds, CalcCmds *rpn);
 
-CalcNum calc_evaluate_rpn(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
 
-CalcNum calc_evaluate_ascii(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
-CalcNum calc_evaluate_ascii_to(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii_to(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
+
+CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcErr *err);
 
 #ifdef CALC_ALLOC
-CalcErr calc_parse_ascii_with_alloc(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
-CalcErr calc_parse_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcErr calc_parse_ascii_with_alloc(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcErr calc_parse_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
 
-CalcErr calc_to_rpn_with_alloc(CalcCmds cmds);
-CalcErr calc_gen_rpn_with_alloc(CalcCmds cmds, CalcCmds *rpn);
+CALC_LINKAGE CalcErr calc_to_rpn_with_alloc(CalcCmds cmds);
+CALC_LINKAGE CalcErr calc_gen_rpn_with_alloc(CalcCmds cmds, CalcCmds *rpn);
 
-CalcNum calc_evaluate_rpn_with_alloc(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
 
-CalcNum calc_evaluate_ascii_with_alloc(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
-CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii_with_alloc(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
 #endif
 
 #ifdef CALC_INT
@@ -85,12 +93,12 @@ CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUint pos, char c,
 #define calc_mul_fixed()
 #define calc_div_fixed()
 #else
-CalcNum calc_mul_fixed(CalcNum a, CalcNum b);
-CalcNum calc_div_fixed(CalcNum a, CalcNum b);
+CALC_LINKAGE CalcNum calc_mul_fixed(CalcNum a, CalcNum b);
+CALC_LINKAGE CalcNum calc_div_fixed(CalcNum a, CalcNum b);
 #endif // CALC_WIDE_INT
 
-CalcNum calc_mul_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
-CalcNum calc_div_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
+CALC_LINKAGE CalcNum calc_mul_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
+CALC_LINKAGE CalcNum calc_div_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
 
 #define CALC_NUM(x) ((x) << CALC_SHIFT)
 
@@ -107,13 +115,13 @@ const char *calc_debug_str(CalcErr err);
 }
 #endif
 
-#ifdef CALC_IMPLEMENTATION
+#if defined(CALC_IMPLEMENTATION) || defined(CALC_STATIC_IMPLEMENTATION)
 
-static CalcErr str_to_num(const char **str, CalcNum *num_ptr) {
+CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcErr *err) {
   CalcNum num = 0;
   char sign = 1;
 
-  const char *ptr = *str;
+  const char *ptr = str;
 
   if (*ptr == '-') {
     sign = -1;
@@ -121,14 +129,6 @@ static CalcErr str_to_num(const char **str, CalcNum *num_ptr) {
   } else if (*ptr == '+') {
     ptr++;
   }
-
-#ifndef CALC_IGNORE_UNKNOWN_CHAR
-#define handle_unknown_char()                                                                                                                          \
-  if (*ptr < '0' || *ptr > '9') { return CALC_ERR_INVALID_SYNTAX; }
-#else
-#define handle_unknown_char()                                                                                                                          \
-  while (*ptr < '0' || *ptr > '9') ptr++
-#endif // CALC_IGNORE_UNKNOWN_CHAR
 
   // Integer part
   while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + CALC_NUM(*ptr++ - '0'); }
@@ -140,10 +140,8 @@ static CalcErr str_to_num(const char **str, CalcNum *num_ptr) {
     CalcNum frac = 0;
     CalcUint div = 1;
 
-    handle_unknown_char();
-
     while (*ptr >= '0' && *ptr <= '9') {
-      frac += CALC_NUM(*ptr++ - '0');
+      frac = frac * 10 + CALC_NUM(*ptr++ - '0');
       div *= 10;
     }
 
@@ -163,7 +161,15 @@ static CalcErr str_to_num(const char **str, CalcNum *num_ptr) {
       ptr++;
     }
 
-    handle_unknown_char();
+#ifndef CALC_IGNORE_UNKNOWN_CHAR
+    if (*ptr < '0' || *ptr > '9') {
+      if (err) { *err = CALC_ERR_INVALID_SYNTAX; }
+      if (end) { *end = str; }
+      return 0;
+    }
+#else
+    while (*ptr < '0' || *ptr > '9') ptr++;
+#endif // CALC_IGNORE_UNKNOWN_CHAR
 
     CalcUint exponent = 0;
     while (*ptr >= '0' && *ptr <= '9') { exponent = exponent * 10 + CALC_NUM(*ptr++ - '0'); }
@@ -180,8 +186,12 @@ static CalcErr str_to_num(const char **str, CalcNum *num_ptr) {
   // if (num == CALC_FSIZE_INF) { return CALC_ERR_NUM_OVERFLOW; }
 
   num *= sign;
-  *str = ptr; // update caller pointer to the new position
-  return CALC_ERR_NONE;
+
+  if (err) { *err = CALC_ERR_NONE; }
+  if (end) { *end = str; }
+
+  *end = ptr;
+  return num;
 }
 
 #endif // CALC_IMPLEMENTATION

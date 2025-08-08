@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 project(CALC C)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED TRUE)
-
 option(CALC_TESTS "Build Tests" OFF)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -15,6 +12,8 @@ target_include_directories(Calc INTERFACE ${SRC_DIR})
 if(DEFINED CALC_FLOAT OR DEFINED CALC_INT)
   add_library(CalcWithImpl STATIC ${SRC_DIR}/calc.c)
   target_link_libraries(CalcWithImpl PRIVATE Calc)
+  target_compile_features(tests PRIVATE c_std_99)
+
 else()
   message(
     WARNING
@@ -43,7 +42,7 @@ add_macro(CALC_MIN_ALLOC)
 
 add_macro(CALC_IGNORE_UNKNOWN_CHAR)
 
-if(CALC_TESTS)
+if(CALC_TESTING)
   enable_language(CXX)
 
   include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_cpm.cmake)
