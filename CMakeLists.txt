@@ -42,7 +42,7 @@ add_macro(CALC_MIN_ALLOC)
 
 add_macro(CALC_IGNORE_UNKNOWN_CHAR)
 
-if(CALC_TESTING)
+if(CALC_TESTS)
   enable_language(CXX)
 
   include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_cpm.cmake)
