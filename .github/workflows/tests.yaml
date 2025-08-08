@@ -19,6 +19,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set CPM_SOURCE_CACHE
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo "CPM_SOURCE_CACHE=${{ github.workspace }}\\.cpm_cache" >> $GITHUB_ENV
+          else
+            echo "CPM_SOURCE_CACHE=${{ github.workspace }}/.cpm_cache" >> $GITHUB_ENV
+          fi
+
+      - name: Restore CPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CPM_SOURCE_CACHE }}
+          key: ${{ runner.os }}-cpm-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cpm-
+
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
         with:
