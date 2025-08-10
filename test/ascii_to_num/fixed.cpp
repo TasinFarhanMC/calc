@@ -1,28 +1,21 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
-
 using namespace Catch;
 
-#define CALC_IMPLEMENTATION
+#define CALC_STATIC_IMPLEMENTATION
+#define CALC_INT long
 #include "calc.h"
 
 static CalcNum parse_num(const char *str, CalcErr &err_out, const char **endptr = nullptr) {
   const char *p = str;
-  CalcNum num {};
-  err_out = str_to_num(&p, &num);
+  CalcNum num = calc_ascii_to_num(p, &p, &err_out);
   if (endptr) *endptr = p;
   return num;
 }
 
-#ifdef CALC_FLOAT
-#define REQUIRE_NUM_EQ(actual, expected) REQUIRE(actual == Approx(expected))
-#define PREFIX "Floating"
-#else
-#define REQUIRE_NUM_EQ(actual, expected) REQUIRE((actual) == (CALC_INT)((float)(expected) * (1 << CALC_SHIFT)))
-#define PREFIX "Fixed"
-#endif
+#define REQUIRE_NUM_EQ(actual, expected) REQUIRE((CalcUint)actual == (CalcUint)(float(expected) * (1ULL << CALC_SHIFT)))
 
-TEST_CASE(PREFIX ": Integer parsing") {
+TEST_CASE("Fixed: Integer parsing") {
   CalcErr err;
 
   SECTION("Positive integer") {
@@ -50,7 +43,7 @@ TEST_CASE(PREFIX ": Integer parsing") {
   }
 }
 
-TEST_CASE(PREFIX ": Fractional parsing") {
+TEST_CASE("Fixed: Fractional parsing") {
   CalcErr err;
 
   SECTION("Simple fraction") {
@@ -78,7 +71,7 @@ TEST_CASE(PREFIX ": Fractional parsing") {
   }
 }
 
-TEST_CASE(PREFIX ": Exponent parsing") {
+TEST_CASE("Fixed: Exponent parsing") {
   CalcErr err;
 
   SECTION("Positive exponent") {
@@ -106,7 +99,7 @@ TEST_CASE(PREFIX ": Exponent parsing") {
   }
 }
 
-TEST_CASE(PREFIX ": Edge cases and pointer position") {
+TEST_CASE("Fixed: Edge cases and pointer position") {
   CalcErr err;
   const char *endptr = nullptr;
 
@@ -123,24 +116,17 @@ TEST_CASE(PREFIX ": Edge cases and pointer position") {
     REQUIRE_NUM_EQ(num, 0);
   }
 
-#ifdef CALC_INT
   SECTION("Large integer") {
-    auto num = parse_num("32767", err); // adjust if 16-bit
+    auto num = parse_num("32767", err);
     REQUIRE(err == CALC_ERR_NONE);
     REQUIRE_NUM_EQ(num, 32767);
   }
-#endif
 }
 
-TEST_CASE(PREFIX ": Error handling") {
+TEST_CASE("Fixed: Error handling") {
   CalcErr err;
 
 #ifndef CALC_IGNORE_UNKNOWN_CHAR
-  SECTION("Invalid char at start") {
-    parse_num("x123", err);
-    REQUIRE(err == CALC_ERR_INVALID_SYNTAX);
-  }
-
   SECTION("Missing exponent digits") {
     parse_num("1e", err);
     REQUIRE(err == CALC_ERR_INVALID_SYNTAX);

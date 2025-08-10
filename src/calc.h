@@ -172,7 +172,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcEr
 #endif // CALC_IGNORE_UNKNOWN_CHAR
 
     CalcUint exponent = 0;
-    while (*ptr >= '0' && *ptr <= '9') { exponent = exponent * 10 + CALC_NUM(*ptr++ - '0'); }
+    while (*ptr >= '0' && *ptr <= '9') { exponent = exponent * 10 + *ptr++ - '0'; }
 
     CalcUint scale = 1;
     for (CalcUint i = 0; i < exponent; ++i) scale *= 10;
