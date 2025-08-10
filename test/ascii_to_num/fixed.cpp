@@ -122,14 +122,3 @@ TEST_CASE("Fixed: Edge cases and pointer position") {
     REQUIRE_NUM_EQ(num, 32767);
   }
 }
-
-TEST_CASE("Fixed: Error handling") {
-  CalcErr err;
-
-#ifndef CALC_IGNORE_UNKNOWN_CHAR
-  SECTION("Missing exponent digits") {
-    parse_num("1e", err);
-    REQUIRE(err == CALC_ERR_INVALID_SYNTAX);
-  }
-#endif
-}

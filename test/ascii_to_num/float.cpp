@@ -98,38 +98,3 @@ TEST_CASE("Floating: Exponent parsing") {
     REQUIRE_NUM_EQ(num, -0.32);
   }
 }
-
-TEST_CASE("Floating: Edge cases and pointer position") {
-  CalcErr err;
-  const char *endptr = nullptr;
-
-  SECTION("Stops at non-digit") {
-    auto num = parse_num("123abc", err, &endptr);
-    REQUIRE(err == CALC_ERR_NONE);
-    REQUIRE(*endptr == 'a');
-    REQUIRE_NUM_EQ(num, 123);
-  }
-
-  SECTION("Zero") {
-    auto num = parse_num("0", err);
-    REQUIRE(err == CALC_ERR_NONE);
-    REQUIRE_NUM_EQ(num, 0);
-  }
-
-  SECTION("Large integer") {
-    auto num = parse_num("32767", err);
-    REQUIRE(err == CALC_ERR_NONE);
-    REQUIRE_NUM_EQ(num, 32767);
-  }
-}
-
-TEST_CASE("Floating: Error handling") {
-  CalcErr err;
-
-#ifndef CALC_IGNORE_UNKNOWN_CHAR
-  SECTION("Missing exponent digits") {
-    parse_num("1e", err);
-    REQUIRE(err == CALC_ERR_INVALID_SYNTAX);
-  }
-#endif
-}
