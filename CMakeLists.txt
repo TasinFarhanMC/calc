@@ -40,8 +40,6 @@ add_macro(CALC_FREE)
 add_macro(CALC_STACK_SIZE)
 add_macro(CALC_MIN_ALLOC)
 
-add_macro(CALC_IGNORE_UNKNOWN_CHAR)
-
 if(CALC_TESTS)
   enable_language(CXX)
 

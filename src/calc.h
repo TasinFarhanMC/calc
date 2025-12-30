@@ -6,17 +6,25 @@ extern "C" {
 
 #ifdef CALC_INT
 typedef CALC_INT CalcNum;
-#define CALC_SHIFT (sizeof(CALC_INT) / 2)
+#define CALC_SHIFT (sizeof(CALC_INT) * 8 / 2)
 
 typedef CALC_INT CalcInt;
 typedef unsigned CALC_INT CalcUint;
+
+#define CALC_CAST_NUM(x) (CalcNum(x) << CALC_SHIFT)
 #elif defined(CALC_FLOAT)
 typedef CALC_FLOAT CalcNum;
-typedef int CalcInt;
-typedef unsigned CalcUint;
+typedef CALC_FLOAT CalcFloat;
+
+typedef long CalcInt;
+typedef unsigned long CalcUint;
+
+#define CALC_CAST_NUM(x) (CalcNum(x))
 #else
 #error "NEITHER CALC_INT NOR CALC_FLOAT DEFINED"
 #endif // def CALC_INT
+
+typedef char CalcByte;
 
 typedef enum {
   CALC_CMD_LOAD,
@@ -31,64 +39,77 @@ typedef enum {
 
 typedef struct {
   CalcNum *data;
-  CalcInt size;
-  CalcInt cap;
-} CalcNums;
+  CalcUint filled_size;
+  CalcUint capacity;
+} CalcNumData;
 
 typedef struct {
   CalcCmd *data;
-  CalcInt size;
-  CalcInt cap;
-} CalcCmds;
+  CalcUint filled_size;
+  CalcUint capacity;
+} CalcCmdData;
 
 typedef enum {
-  CALC_ERR_NONE,
-  CALC_ERR_UNKNOWN_CHAR,
-  CALC_ERR_NUM_OVERFLOW,
-  CALC_ERR_DIV_ZERO,
-  CALC_ERR_STACK_OVERFLOW,
-  CALC_ERR_INVALID_SYNTAX,
-} CalcErr;
+  CALC_ERROR_NONE,
+  CALC_ERROR_UNKNOWN_SYMBOL,
+  CALC_ERROR_OVERFLOW,
+  CALC_ERROR_UNDERFLOW,
+  CALC_ERROR_DIVISION_ZERO,
+  CALC_ERROR_DATA_OVERFLOW,
+} CalcError;
 
-#ifdef CALC_IMPLEMENTATION
-#define CALC_LINKAGE extern
-#elif defined(CALC_STATIC_IMPLEMENTATION)
+#ifdef CALC_STATIC_IMPLEMENTATION
 #define CALC_LINKAGE static
+#else
+#define CALC_LINKAGE extern
 #endif
 
-#define CALC_NUMS (CalcNums) {0, 0, 0}
-#define CALC_CMDS (CalcCmds) {0, 0, 0}
+#define CALC_NUM_DATA_NULL (CalcNumData) {0, 0, 0}
+#define CALC_CMD_DATA_NULL (CalcCmdData) {0, 0, 0}
 
-#define CALC_NUMS_FROM_ARR(arr) (CalcNums) {arr, 0, 0}
-#define CALC_CMDS_FROM_ARR(arr) (CalcCmds) {arr, 0, 0}
+#define CALC_NUM_DATA(ptr, capacity)                                                                                                                   \
+  (CalcNumData) { (ptr), 0, (capacity) }
+#define CALC_CMD_DATA(ptr, capacity)                                                                                                                   \
+  (CalcCmdData) { (ptr), 0, (capacity) }
 
-CALC_LINKAGE CalcErr calc_parse_ascii(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
-CALC_LINKAGE CalcErr calc_parse_ascii_to(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_to(const CalcByte *str, CalcUint pos, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_till(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
 
-CALC_LINKAGE CalcErr calc_to_rpn(CalcCmds cmds);
-CALC_LINKAGE CalcErr calc_gen_rpn(CalcCmds cmds, CalcCmds *rpn);
+CALC_LINKAGE CalcError calc_to_rpn(CalcCmdData cmds);
+CALC_LINKAGE CalcError calc_gen_rpn(CalcCmdData cmds, CalcCmdData *rpn);
 
-CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
 
-CALC_LINKAGE CalcNum calc_evaluate_ascii(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
-CALC_LINKAGE CalcNum calc_evaluate_ascii_to(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii(const CalcByte *str, CalcUint size, CalcError *error);               // Nullable error
+CALC_LINKAGE CalcNum calc_evaluate_ascii_to(const CalcByte *str, CalcUint pos, CalcByte c, CalcError *error); // Nullable error
 
-CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcErr *err);
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, CalcError *error); // Nullable end, error
+
+// TODO:
+// CalcUInt calc_fixed_to_asciz(CalcNum, CalcByte*, ...);
+// CalcUInt calc_fixed_to_asciz_with_alloc(CalcNum. CalcByte**, ...);
 
 #ifdef CALC_ALLOC
-CALC_LINKAGE CalcErr calc_parse_ascii_with_alloc(const char *str, CalcUint size, CalcNums *nums, CalcCmds *cmds);
-CALC_LINKAGE CalcErr calc_parse_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcNums *nums, CalcCmds *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_to_with_alloc(const CalcByte *str, CalcUint pos, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
 
-CALC_LINKAGE CalcErr calc_to_rpn_with_alloc(CalcCmds cmds);
-CALC_LINKAGE CalcErr calc_gen_rpn_with_alloc(CalcCmds cmds, CalcCmds *rpn);
+CALC_LINKAGE CalcError calc_to_rpn_with_alloc(CalcCmdData cmds);
+CALC_LINKAGE CalcError calc_gen_rpn_with_alloc(CalcCmdData cmds, CalcCmdData *rpn);
 
-CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmds cmds, CalcNums nums, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
 
-CALC_LINKAGE CalcNum calc_evaluate_ascii_with_alloc(const char *str, CalcUint size, CalcErr *err);           // Nullable Err
-CALC_LINKAGE CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUint pos, char c, CalcErr *err); // Nullable Err
+CALC_LINKAGE CalcNum calc_evaluate_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcError *error);               // Nullable error
+CALC_LINKAGE CalcNum calc_evaluate_ascii_to_with_alloc(const CalcByte *str, CalcUint pos, CalcByte c, CalcError *error); // Nullable error
 #endif
 
 #ifdef CALC_INT
+#define CALC_DIV_VALUE_JUSTIFIED(a, x, sign) (((a) + (sign) * ((x) / 2)) / (x))
+
+CALC_LINKAGE CalcNum calc_mul_fixed_safe(CalcNum a, CalcNum b, CalcError *error);
+CALC_LINKAGE CalcNum calc_div_fixed_safe(CalcNum a, CalcNum b, CalcError *error);
+
 #ifdef CALC_WIDE_INT
 #define calc_mul_fixed()
 #define calc_div_fixed()
@@ -96,20 +117,11 @@ CALC_LINKAGE CalcNum calc_evaluate_ascii_to_with_alloc(const char *str, CalcUint
 CALC_LINKAGE CalcNum calc_mul_fixed(CalcNum a, CalcNum b);
 CALC_LINKAGE CalcNum calc_div_fixed(CalcNum a, CalcNum b);
 #endif // CALC_WIDE_INT
-
-CALC_LINKAGE CalcNum calc_mul_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
-CALC_LINKAGE CalcNum calc_div_fixed_safe(CalcNum a, CalcNum b, CalcErr *err);
-
-#define CALC_NUM(x) ((x) << CALC_SHIFT)
-
-// TODO:
-// CalcUInt calc_fixed_to_asciz(CalcNum, char*, ...);
-// CalcUInt calc_fixed_to_asciz_with_alloc(CalcNum. char**, ...);
-#elif defined(CALC_FLOAT)
-#define CALC_NUM(x) (x)
+#else
+#define CALC_DIV_VALUE_JUSTIFIED(a, x, sign) (a / x)
 #endif // CALC_INT
 
-const char *calc_debug_str(CalcErr err);
+const CalcByte *calc_debug_str(CalcError error);
 
 #ifdef __cplusplus
 }
@@ -117,11 +129,11 @@ const char *calc_debug_str(CalcErr err);
 
 #if defined(CALC_IMPLEMENTATION) || defined(CALC_STATIC_IMPLEMENTATION)
 
-CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcErr *err) {
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, CalcError *error) {
   CalcNum num = 0;
-  char sign = 1;
+  CalcInt sign = 1;
 
-  const char *ptr = str;
+  const CalcByte *ptr = str;
 
   if (*ptr == '-') {
     sign = -1;
@@ -130,67 +142,57 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const char *str, const char **end, CalcEr
     ptr++;
   }
 
-  // Integer part
-  while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + CALC_NUM(*ptr++ - '0'); }
+  while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + CALC_CAST_NUM(*ptr++ - '0'); }
 
-  // Fractional part
   if (*ptr == '.') {
     ptr++;
 
-    CalcNum frac = 0;
-    CalcUint div = 1;
+    CalcUint fract = 0;
+    CalcUint scale = 1;
 
     while (*ptr >= '0' && *ptr <= '9') {
-      frac = frac * 10 + CALC_NUM(*ptr++ - '0');
-      div *= 10;
+      fract = (fract * 10) + (*ptr++ - '0');
+      scale *= 10;
     }
 
-    num += frac / div;
+    num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
   }
 
-  // Exponential part
+  num *= sign;
+
   if (*ptr == 'e' || *ptr == 'E') {
     ptr++;
-
-    char exp_sign = 1;
+    int exp_neg = 0;
 
     if (*ptr == '-') {
-      exp_sign = -1;
+      exp_neg = 1;
       ptr++;
     } else if (*ptr == '+') {
       ptr++;
     }
 
-#ifndef CALC_IGNORE_UNKNOWN_CHAR
-    if (*ptr < '0' || *ptr > '9') {
-      if (err) { *err = CALC_ERR_INVALID_SYNTAX; }
-      if (end) { *end = str; }
-      return 0;
-    }
-#else
-    while (*ptr < '0' || *ptr > '9') ptr++;
-#endif // CALC_IGNORE_UNKNOWN_CHAR
-
     CalcUint exponent = 0;
-    while (*ptr >= '0' && *ptr <= '9') { exponent = exponent * 10 + *ptr++ - '0'; }
+    while (*ptr >= '0' && *ptr <= '9') { exponent = (exponent * 10) + (*ptr++ - '0'); }
 
-    CalcUint scale = 1;
-    for (CalcUint i = 0; i < exponent; ++i) scale *= 10;
+    CalcInt power = 1;
+    CalcUint base = 10;
 
-    if (exp_sign < 0)
-      num /= scale;
-    else
-      num *= scale;
+    while (exponent > 0) {
+      if (exponent & 1) { power *= base; }
+      base *= base;
+      exponent >>= 1;
+    }
+
+    if (exp_neg) {
+      num = CALC_DIV_VALUE_JUSTIFIED(num, power, sign);
+    } else {
+      num *= power;
+    }
   }
 
-  // if (num == CALC_FSIZE_INF) { return CALC_ERR_NUM_OVERFLOW; }
+  if (error) { *error = CALC_ERROR_NONE; }
+  if (end) { *end = ptr; }
 
-  num *= sign;
-
-  if (err) { *err = CALC_ERR_NONE; }
-  if (end) { *end = str; }
-
-  *end = ptr;
   return num;
 }
 
