@@ -6,12 +6,14 @@ extern "C" {
 
 #ifdef CALC_INT
 typedef CALC_INT CalcNum;
-#define CALC_SHIFT (sizeof(CALC_INT) * 8 / 2)
+#define CALC_SHIFT (sizeof(CALC_INT) * 4)
 
 typedef CALC_INT CalcInt;
 typedef unsigned CALC_INT CalcUint;
 
-#define CALC_CAST_NUM(x) (CalcNum(x) << CALC_SHIFT)
+#define CALC_CAST_NUM(x) ((CalcUint)(x) << CALC_SHIFT)
+
+#define CALC_MAX_FRACT_DIGIT (((CALC_SHIFT - 1) * 30103UL / 100000UL) + 1)
 #elif defined(CALC_FLOAT)
 typedef CALC_FLOAT CalcNum;
 typedef CALC_FLOAT CalcFloat;
@@ -19,7 +21,8 @@ typedef CALC_FLOAT CalcFloat;
 typedef long CalcInt;
 typedef unsigned long CalcUint;
 
-#define CALC_CAST_NUM(x) (CalcNum(x))
+#define CALC_CAST_NUM(x) ((CalcNum)(x))
+#define CALC_MAX_FRACT_DIGIT (20) // TODO: CREATE MAX FOR FLOATING TYPE
 #else
 #error "NEITHER CALC_INT NOR CALC_FLOAT DEFINED"
 #endif // def CALC_INT
@@ -142,18 +145,26 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     ptr++;
   }
 
-  while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + CALC_CAST_NUM(*ptr++ - '0'); }
+  while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
+  num = CALC_CAST_NUM(num);
 
   if (*ptr == '.') {
     ptr++;
 
-    CalcUint fract = 0;
+    CalcNum fract = 0;
     CalcUint scale = 1;
+    CalcUint digits = 0;
 
-    while (*ptr >= '0' && *ptr <= '9') {
+    while (*ptr >= '0' && *ptr <= '9' && ++digits < CALC_MAX_FRACT_DIGIT) {
       fract = (fract * 10) + (*ptr++ - '0');
       scale *= 10;
     }
+
+    if (*ptr >= '5' && *ptr <= '9') {
+      fract++;
+      ptr++;
+    }
+    while (*ptr >= '0' && *ptr <= '9') { ptr++; }
 
     num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
   }
@@ -174,8 +185,8 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     CalcUint exponent = 0;
     while (*ptr >= '0' && *ptr <= '9') { exponent = (exponent * 10) + (*ptr++ - '0'); }
 
-    CalcInt power = 1;
-    CalcUint base = 10;
+    CalcNum power = 1;
+    CalcNum base = 10;
 
     while (exponent > 0) {
       if (exponent & 1) { power *= base; }

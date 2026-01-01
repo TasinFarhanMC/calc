@@ -53,9 +53,10 @@ TEST_CASE("Floating: Fractional parsing") {
   }
 
   SECTION("Multiple fractional digits") {
-    auto num = parse_num("3.1415", err);
+    auto num = parse_num("3.141592653589", err);
+
     REQUIRE(err == CALC_ERROR_NONE);
-    REQUIRE_NUM_EQ(num, 3.1415);
+    REQUIRE_NUM_EQ(num, 3.141592653589);
   }
 
   SECTION("No integer part") {

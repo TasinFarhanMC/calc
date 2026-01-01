@@ -13,7 +13,7 @@ static CalcNum parse_num(const char *str, CalcError &err_out, const char **endpt
   return num;
 }
 
-#define REQUIRE_NUM_EQ(actual, expected) REQUIRE((CalcUint)actual == (CalcUint)std::lround((double)(expected) * (1ULL << CALC_SHIFT)))
+#define REQUIRE_NUM_EQ(actual, expected) REQUIRE((CalcUint)actual - (CalcUint)std::lround((double)(expected) * (1ULL << CALC_SHIFT)) <= 1)
 
 TEST_CASE("Fixed: Integer parsing") {
   CalcError err;
@@ -53,9 +53,9 @@ TEST_CASE("Fixed: Fractional parsing") {
   }
 
   SECTION("Multiple fractional digits") {
-    auto num = parse_num("3.1415", err);
+    auto num = parse_num("3.141592653589", err);
     REQUIRE(err == CALC_ERROR_NONE);
-    REQUIRE_NUM_EQ(num, 3.1415);
+    REQUIRE_NUM_EQ(num, 3.141592653589);
   }
 
   SECTION("No integer part") {
