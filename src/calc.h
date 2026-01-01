@@ -42,13 +42,13 @@ typedef enum {
 
 typedef struct {
   CalcNum *data;
-  CalcUint filled_size;
+  CalcUint length;
   CalcUint capacity;
 } CalcNumData;
 
 typedef struct {
   CalcCmd *data;
-  CalcUint filled_size;
+  CalcUint length;
   CalcUint capacity;
 } CalcCmdData;
 
@@ -75,19 +75,15 @@ typedef enum {
 #define CALC_CMD_DATA(ptr, capacity)                                                                                                                   \
   (CalcCmdData) { (ptr), 0, (capacity) }
 
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end); // Nullable end
+
 CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_parse_ascii_to(const CalcByte *str, CalcUint pos, CalcNumData *nums, CalcCmdData *cmds);
 CALC_LINKAGE CalcError calc_parse_ascii_till(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
 
-CALC_LINKAGE CalcError calc_to_rpn(CalcCmdData cmds);
+CALC_LINKAGE CalcError calc_to_rpn(CalcCmdData *cmds);
 CALC_LINKAGE CalcError calc_gen_rpn(CalcCmdData cmds, CalcCmdData *rpn);
 
 CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
-
-CALC_LINKAGE CalcNum calc_evaluate_ascii(const CalcByte *str, CalcUint size, CalcError *error);               // Nullable error
-CALC_LINKAGE CalcNum calc_evaluate_ascii_to(const CalcByte *str, CalcUint pos, CalcByte c, CalcError *error); // Nullable error
-
-CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, CalcError *error); // Nullable end, error
 
 // TODO:
 // CalcUInt calc_fixed_to_asciz(CalcNum, CalcByte*, ...);
@@ -95,16 +91,12 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
 
 #ifdef CALC_ALLOC
 CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_parse_ascii_to_with_alloc(const CalcByte *str, CalcUint pos, CalcNumData *nums, CalcCmdData *cmds);
 CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
 
-CALC_LINKAGE CalcError calc_to_rpn_with_alloc(CalcCmdData cmds);
+CALC_LINKAGE CalcError calc_to_rpn_with_alloc(CalcCmdData *cmds);
 CALC_LINKAGE CalcError calc_gen_rpn_with_alloc(CalcCmdData cmds, CalcCmdData *rpn);
 
 CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
-
-CALC_LINKAGE CalcNum calc_evaluate_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcError *error);               // Nullable error
-CALC_LINKAGE CalcNum calc_evaluate_ascii_to_with_alloc(const CalcByte *str, CalcUint pos, CalcByte c, CalcError *error); // Nullable error
 #endif
 
 #ifdef CALC_INT
@@ -132,7 +124,7 @@ const CalcByte *calc_debug_str(CalcError error);
 
 #if defined(CALC_IMPLEMENTATION) || defined(CALC_STATIC_IMPLEMENTATION)
 
-CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, CalcError *error) {
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end) {
   CalcNum num = 0;
   CalcInt sign = 1;
 
@@ -201,7 +193,6 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     }
   }
 
-  if (error) { *error = CALC_ERROR_NONE; }
   if (end) { *end = ptr; }
 
   return num;
