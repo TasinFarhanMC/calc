@@ -27,6 +27,10 @@ typedef unsigned long CalcUint;
 #error "NEITHER CALC_INT NOR CALC_FLOAT DEFINED"
 #endif // def CALC_INT
 
+#ifndef CALC_STACK_SIZE
+#define CALC_STACK_SIZE 512
+#endif // !CALC_STACK_SIZE
+
 typedef char CalcByte;
 
 typedef enum {
@@ -75,10 +79,11 @@ typedef enum {
 #define CALC_CMD_DATA(ptr, capacity)                                                                                                                   \
   (CalcCmdData) { (ptr), 0, (capacity) }
 
-CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end); // Nullable end
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, const CalcByte *stop); // Nullable end
 
-CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_parse_ascii_till(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
+CALC_LINKAGE CalcError
+calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data);
 
 CALC_LINKAGE CalcError calc_to_rpn(CalcCmdData *cmds);
 CALC_LINKAGE CalcError calc_gen_rpn(CalcCmdData cmds, CalcCmdData *rpn);
@@ -124,7 +129,7 @@ const CalcByte *calc_debug_str(CalcError error);
 
 #if defined(CALC_IMPLEMENTATION) || defined(CALC_STATIC_IMPLEMENTATION)
 
-CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end) {
+CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, const CalcByte *stop) {
   CalcNum num = 0;
   CalcInt sign = 1;
 
@@ -137,7 +142,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     ptr++;
   }
 
-  while (*ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
+  while (ptr < stop && *ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
   num = CALC_CAST_NUM(num);
 
   if (*ptr == '.') {
@@ -147,18 +152,25 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     CalcUint scale = 1;
     CalcUint digits = 0;
 
-    while (*ptr >= '0' && *ptr <= '9' && ++digits < CALC_MAX_FRACT_DIGIT) {
+    while (ptr < stop && *ptr >= '0' && *ptr <= '9' && ++digits < CALC_MAX_FRACT_DIGIT) {
       fract = (fract * 10) + (*ptr++ - '0');
       scale *= 10;
+    }
+
+    if (ptr == stop) {
+      num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
+      return num * sign;
     }
 
     if (*ptr >= '5' && *ptr <= '9') {
       fract++;
       ptr++;
     }
-    while (*ptr >= '0' && *ptr <= '9') { ptr++; }
 
     num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
+    while (ptr < stop && *ptr >= '0' && *ptr <= '9') { ptr++; }
+
+    if (ptr == stop) { return num * sign; }
   }
 
   num *= sign;
@@ -175,7 +187,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     }
 
     CalcUint exponent = 0;
-    while (*ptr >= '0' && *ptr <= '9') { exponent = (exponent * 10) + (*ptr++ - '0'); }
+    while (*ptr >= '0' && *ptr <= '9' && ptr < stop) { exponent = (exponent * 10) + (*ptr++ - '0'); }
 
     CalcNum power = 1;
     CalcNum base = 10;
@@ -213,7 +225,7 @@ CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, Calc
 
       if (cmd_count == cmd_data->capacity || num_count == num_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
 
-      num_data->data[num_count++] = calc_ascii_to_num(str, &str);
+      num_data->data[num_count++] = calc_ascii_to_num(str, &str, end);
       cmd_data->data[cmd_count++] = CALC_CMD_LOAD;
       is_prev_expr = 1;
       continue;
@@ -247,6 +259,103 @@ CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, Calc
 
       CalcUint neg_count = 1;
       while (*++str == '-') { neg_count++; }
+      if (neg_count & 1) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_NEG;
+        is_prev_expr = 0;
+        continue;
+      }
+
+      continue;
+    }
+    }
+
+    is_prev_expr = 0;
+    if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+    switch (op) {
+    case '*':
+      cmd_data->data[cmd_count++] = CALC_CMD_MUL;
+      str++;
+      continue;
+    case '/':
+      cmd_data->data[cmd_count++] = CALC_CMD_DIV;
+      str++;
+      continue;
+    case '(':
+      cmd_data->data[cmd_count++] = CALC_CMD_L_BRACE;
+      str++;
+      continue;
+    case ')':
+      cmd_data->data[cmd_count++] = CALC_CMD_R_BRACE;
+      is_prev_expr = 1;
+      str++;
+      continue;
+    default:
+      return CALC_ERROR_UNKNOWN_SYMBOL;
+    }
+  }
+
+  num_data->length = num_count;
+  cmd_data->length = cmd_count;
+  return CALC_ERROR_NONE;
+}
+
+CALC_LINKAGE CalcError
+calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data) {
+  CalcUint cmd_count = 0;
+  CalcUint num_count = 0;
+  CalcUint c_count = 0;
+  CalcByte is_prev_expr = 0;
+
+  while (c_count < count && str < stop) {
+    if ((unsigned)(*str - '0') <= 9) {
+      if (cmd_count != 0 && cmd_data->data[cmd_count - 1] == CALC_CMD_NEG) {
+        cmd_count--;
+        str--;
+      }
+
+      if (cmd_count == cmd_data->capacity || num_count == num_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+
+      num_data->data[num_count++] = calc_ascii_to_num(str, &str, stop);
+      cmd_data->data[cmd_count++] = CALC_CMD_LOAD;
+      is_prev_expr = 1;
+      continue;
+    }
+
+    const CalcByte op = *str;
+
+    if (op == c) {
+      c_count++;
+      str++;
+      continue;
+    }
+
+    if ((unsigned)(op - 9) <= 4 || op == ' ') { // is white space
+      str++;
+      continue;
+    }
+
+    switch (op) {
+    case '+':
+      if (is_prev_expr) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_ADD;
+        is_prev_expr = 0;
+      }
+
+      str++;
+      continue;
+    case '-': {
+      if (is_prev_expr) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_SUB;
+        str++;
+        is_prev_expr = 0;
+        continue;
+      }
+
+      CalcUint neg_count = 1;
+      while (str < stop && *++str == '-') { neg_count++; }
       if (neg_count & 1) {
         if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
         cmd_data->data[cmd_count++] = CALC_CMD_NEG;

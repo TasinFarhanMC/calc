@@ -29,16 +29,13 @@ function(add_macro name)
 endfunction()
 
 add_macro(CALC_INT)
+add_macro(CALC_WIDE_INT)
 add_macro(CALC_FLOAT)
 
-add_macro(CALC_WIDE_INT)
-add_macro(CALC_USE_INT128)
+add_macro(CALC_STACK_SIZE)
 
 add_macro(CALC_ALLOC)
 add_macro(CALC_FREE)
-
-add_macro(CALC_STACK_SIZE)
-add_macro(CALC_MIN_ALLOC)
 
 if(CALC_TESTS)
   enable_language(CXX)

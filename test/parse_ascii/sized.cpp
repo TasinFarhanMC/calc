@@ -175,3 +175,90 @@ TEST_CASE("calc_parse_ascii complex mixed operators") {
 
   REQUIRE(err == CALC_ERROR_UNKNOWN_SYMBOL); // ^ not supported
 }
+
+TEST_CASE("calc_parse_ascii stops exactly at given length") {
+  CalcNum nums_buffer[8];
+  CalcCmd cmds_buffer[8];
+  CalcNumData nums = CALC_NUM_DATA(nums_buffer, 8);
+  CalcCmdData cmds = CALC_CMD_DATA(cmds_buffer, 8);
+
+  const char *expr = "1+2+3";
+  // Only parse "1+2"
+  CalcError err = calc_parse_ascii((const CalcByte *)expr, 3, &nums, &cmds);
+
+  REQUIRE(err == CALC_ERROR_NONE);
+  REQUIRE(nums.length == 2);
+  REQUIRE(nums.data[0] == 1);
+  REQUIRE(nums.data[1] == 2);
+  REQUIRE(cmds.length == 3);
+  REQUIRE(cmds.data[0] == CALC_CMD_LOAD);
+  REQUIRE(cmds.data[1] == CALC_CMD_ADD);
+  REQUIRE(cmds.data[2] == CALC_CMD_LOAD);
+}
+
+TEST_CASE("calc_parse_ascii does not read past length even if buffer continues") {
+  CalcNum nums_buffer[8];
+  CalcCmd cmds_buffer[8];
+  CalcNumData nums = CALC_NUM_DATA(nums_buffer, 8);
+  CalcCmdData cmds = CALC_CMD_DATA(cmds_buffer, 8);
+
+  const char expr[] = {'1', '+', '2', '\0', '+', '9'};
+
+  CalcError err = calc_parse_ascii((const CalcByte *)expr, 3, &nums, &cmds);
+
+  REQUIRE(err == CALC_ERROR_NONE);
+  REQUIRE(nums.length == 2);
+  REQUIRE(nums.data[0] == 1);
+  REQUIRE(nums.data[1] == 2);
+}
+
+TEST_CASE("calc_parse_ascii stops in middle of number") {
+  CalcNum nums_buffer[8];
+  CalcCmd cmds_buffer[8];
+  CalcNumData nums = CALC_NUM_DATA(nums_buffer, 8);
+  CalcCmdData cmds = CALC_CMD_DATA(cmds_buffer, 8);
+
+  const char *expr = "12345+6";
+  // Only "12" is visible
+  CalcError err = calc_parse_ascii((const CalcByte *)expr, 2, &nums, &cmds);
+
+  REQUIRE(err == CALC_ERROR_NONE);
+  REQUIRE(nums.length == 1);
+  REQUIRE(nums.data[0] == 12);
+  REQUIRE(cmds.length == 1);
+  REQUIRE(cmds.data[0] == CALC_CMD_LOAD);
+}
+
+TEST_CASE("calc_parse_ascii stops after operator at boundary") {
+  CalcNum nums_buffer[8];
+  CalcCmd cmds_buffer[8];
+  CalcNumData nums = CALC_NUM_DATA(nums_buffer, 8);
+  CalcCmdData cmds = CALC_CMD_DATA(cmds_buffer, 8);
+
+  const char *expr = "1+2";
+  // Ends right after '+'
+  CalcError err = calc_parse_ascii((const CalcByte *)expr, 2, &nums, &cmds);
+
+  REQUIRE(err == CALC_ERROR_NONE);
+  REQUIRE(nums.length == 1);
+  REQUIRE(nums.data[0] == 1);
+  REQUIRE(cmds.length == 2);
+  REQUIRE(cmds.data[0] == CALC_CMD_LOAD);
+  REQUIRE(cmds.data[1] == CALC_CMD_ADD);
+}
+
+TEST_CASE("calc_parse_ascii length boundary prevents unknown symbol") {
+  CalcNum nums_buffer[8];
+  CalcCmd cmds_buffer[8];
+  CalcNumData nums = CALC_NUM_DATA(nums_buffer, 8);
+  CalcCmdData cmds = CALC_CMD_DATA(cmds_buffer, 8);
+
+  const char *expr = "1+2$3";
+  // '$' is outside the parsed range
+  CalcError err = calc_parse_ascii((const CalcByte *)expr, 3, &nums, &cmds);
+
+  REQUIRE(err == CALC_ERROR_NONE);
+  REQUIRE(nums.length == 2);
+  REQUIRE(nums.data[0] == 1);
+  REQUIRE(nums.data[1] == 2);
+}

@@ -6,9 +6,13 @@ using namespace Catch;
 #define CALC_FLOAT float
 #include "calc.h"
 
+// Helper: parse number with stop boundary (default = parse all)
 static CalcNum parse_num(const char *str, const char **endptr = nullptr) {
   const char *p = str;
-  CalcNum num = calc_ascii_to_num((const CalcByte *)p, (const CalcByte **)&p);
+  CalcNum num = calc_ascii_to_num(
+      (const CalcByte *)p, (const CalcByte **)&p,
+      (const CalcByte *)-1 // parse till "infinity"
+  );
   if (endptr) *endptr = p;
   return num;
 }
@@ -21,7 +25,7 @@ TEST_CASE("Floating: Edge cases and end_ptr behavior") {
   SECTION("Stops at non-digit after integer") {
     auto num = parse_num("123abc", &endptr);
     REQUIRE(*endptr == 'a');
-    REQUIRE_NUM_EQ(num, 123);
+    REQUIRE_NUM_EQ(num, 123.0f);
   }
 
   SECTION("Stops at non-digit after fraction") {
@@ -88,5 +92,11 @@ TEST_CASE("Floating: Edge cases and end_ptr behavior") {
     auto num = parse_num("123.45.67", &endptr);
     REQUIRE(*endptr == '.'); // second decimal is invalid
     REQUIRE_NUM_EQ(num, 123.45f);
+  }
+
+  SECTION("Stop at custom boundary") {
+    const char *stop = "9876abc" + 4; // only parse first 4 chars
+    CalcNum num = calc_ascii_to_num((const CalcByte *)"9876abc", nullptr, (const CalcByte *)stop);
+    REQUIRE_NUM_EQ(num, 9876.0f); // only "9876" is parsed
   }
 }
