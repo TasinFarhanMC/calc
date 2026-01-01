@@ -198,4 +198,94 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
   return num;
 }
 
+CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data) {
+  const CalcByte *end = str + size;
+  CalcUint cmd_count = 0;
+  CalcUint num_count = 0;
+  CalcByte is_prev_expr = 0;
+
+  while (end != str) {
+    if ((unsigned)(*str - '0') <= 9) {
+      if (cmd_count != 0 && cmd_data->data[cmd_count - 1] == CALC_CMD_NEG) {
+        cmd_count--;
+        str--;
+      }
+
+      if (cmd_count == cmd_data->capacity || num_count == num_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+
+      num_data->data[num_count++] = calc_ascii_to_num(str, &str);
+      cmd_data->data[cmd_count++] = CALC_CMD_LOAD;
+      is_prev_expr = 1;
+      continue;
+    }
+
+    const CalcByte op = *str;
+
+    if ((unsigned)(op - 9) <= 4 || op == ' ') { // is white space
+      str++;
+      continue;
+    }
+
+    switch (op) {
+    case '+':
+      if (is_prev_expr) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_ADD;
+        is_prev_expr = 0;
+      }
+
+      str++;
+      continue;
+    case '-': {
+      if (is_prev_expr) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_SUB;
+        str++;
+        is_prev_expr = 0;
+        continue;
+      }
+
+      CalcUint neg_count = 1;
+      while (*++str == '-') { neg_count++; }
+      if (neg_count & 1) {
+        if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+        cmd_data->data[cmd_count++] = CALC_CMD_NEG;
+        is_prev_expr = 0;
+        continue;
+      }
+
+      continue;
+    }
+    }
+
+    is_prev_expr = 0;
+    if (cmd_count == cmd_data->capacity) { return CALC_ERROR_DATA_OVERFLOW; }
+    switch (op) {
+    case '*':
+      cmd_data->data[cmd_count++] = CALC_CMD_MUL;
+      str++;
+      continue;
+    case '/':
+      cmd_data->data[cmd_count++] = CALC_CMD_DIV;
+      str++;
+      continue;
+    case '(':
+      cmd_data->data[cmd_count++] = CALC_CMD_L_BRACE;
+      str++;
+      continue;
+    case ')':
+      cmd_data->data[cmd_count++] = CALC_CMD_R_BRACE;
+      is_prev_expr = 1;
+      str++;
+      continue;
+    default:
+      return CALC_ERROR_UNKNOWN_SYMBOL;
+    }
+  }
+
+  num_data->length = num_count;
+  cmd_data->length = cmd_count;
+  return CALC_ERROR_NONE;
+}
+
 #endif // CALC_IMPLEMENTATION
