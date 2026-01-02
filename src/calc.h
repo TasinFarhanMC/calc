@@ -86,11 +86,11 @@ calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, Cal
 
 CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn); // Same Data can struct can be used as output
 
-CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error);              // Nullable error
-CALC_LINKAGE CalcNum calc_evaluate_rpn_fast(CalcCmdData cmd_data, CalcNumData num_data, CalcByte *stack_overflow); // Nullable stack_overflow
+// CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error);              // Nullable error
+// CALC_LINKAGE CalcNum calc_evaluate_rpn_fast(CalcCmdData cmd_data, CalcNumData num_data, CalcByte *stack_overflow); // Nullable stack_overflow
 
 // Uses num data buffer as the stack result will be in num_data.data[0]
-CALC_LINKAGE CalcError calc_evaluate_rpn_inplace(CalcCmdData cmd_data, CalcNumData num_data);
+// CALC_LINKAGE CalcError calc_evaluate_rpn_inplace(CalcCmdData cmd_data, CalcNumData num_data);
 // Uses num data buffer as the stack
 CALC_LINKAGE CalcNum calc_evaluate_rpn_fast_inplace(CalcCmdData cmd_data, CalcNumData num_data);
 
@@ -125,13 +125,32 @@ CALC_LINKAGE CalcNum calc_div_fixed(CalcNum a, CalcNum b);
 #define CALC_DIV_VALUE_JUSTIFIED(a, x, sign) (a / x)
 #endif // CALC_INT
 
-const CalcByte *calc_debug_str(CalcError error);
+CALC_LINKAGE const CalcByte *calc_debug_str(CalcError error);
 
 #ifdef __cplusplus
 }
 #endif
 
 #if defined(CALC_IMPLEMENTATION) || defined(CALC_STATIC_IMPLEMENTATION)
+
+CALC_LINKAGE const CalcByte *calc_debug_str(CalcError error) {
+  switch (error) {
+  case CALC_ERROR_NONE:
+    return "No Error";
+  case CALC_ERROR_UNKNOWN_SYMBOL:
+    return "Unknown Symbol";
+  case CALC_ERROR_OVERFLOW:
+    return "Overflow Occurred";
+  case CALC_ERROR_UNDERFLOW:
+    return "Underflow Occurred";
+  case CALC_ERROR_DIVISION_ZERO:
+    return "Division by Zero";
+  case CALC_ERROR_DATA_OVERFLOW:
+    return "Data Buffer Overflow";
+  default:
+    return "Unknown Rrror";
+  }
+}
 
 CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, const CalcByte *stop) {
   CalcNum num = 0;
