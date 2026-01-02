@@ -84,20 +84,29 @@ CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, Calc
 CALC_LINKAGE CalcError
 calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data);
 
-CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn);                      // Same Data can struct can be used as output
-CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error); // Nullable error
+CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn); // Same Data can struct can be used as output
+
+CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error);              // Nullable error
+CALC_LINKAGE CalcNum calc_evaluate_rpn_fast(CalcCmdData cmd_data, CalcNumData num_data, CalcByte *stack_overflow); // Nullable stack_overflow
+
+// Uses num data buffer as the stack result will be in num_data.data[0]
+CALC_LINKAGE CalcError calc_evaluate_rpn_inplace(CalcCmdData cmd_data, CalcNumData num_data);
+// Uses num data buffer as the stack
+CALC_LINKAGE CalcNum calc_evaluate_rpn_fast_inplace(CalcCmdData cmd_data, CalcNumData num_data);
 
 // TODO:
 // CalcUInt calc_fixed_to_asciz(CalcNum, CalcByte*, ...);
 // CalcUInt calc_fixed_to_asciz_with_alloc(CalcNum. CalcByte**, ...);
 
-#ifdef CALC_ALLOC
-CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
-CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data);
-
-CALC_LINKAGE CalcError calc_convert_rpn_with_alloc(CalcCmdData cmd_data, CalcCmdData *rpn); // Same Data can struct can be used as output
-CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error); // Nullable error
-#endif
+// #ifdef CALC_ALLOC
+// CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
+// CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData
+// *cmd_data);
+//
+// CALC_LINKAGE CalcError calc_convert_rpn_with_alloc(CalcCmdData cmd_data, CalcCmdData *rpn); // Same Data can struct can be used as output
+// CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error); // Nullable error
+// CALC_LINKAGE CalcNum calc_evaluate_rpn_fast_with_alloc(CalcCmdData cmd_data, CalcNumData num_data);
+// #endif
 
 #ifdef CALC_INT
 #define CALC_DIV_VALUE_JUSTIFIED(a, x, sign) (((a) + (sign) * ((x) / 2)) / (x))
@@ -445,6 +454,43 @@ CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn) 
 
   rpn->length = output_count;
   return CALC_ERROR_NONE;
+}
+
+CALC_LINKAGE CalcNum calc_evaluate_rpn_fast_inplace(CalcCmdData cmd_data, CalcNumData num_data) {
+  CalcNum *stack = num_data.data;
+  CalcUint stack_count = 0;
+  CalcUint num_index = 0;
+
+  for (CalcUint i = 0; i < cmd_data.length; i++) {
+    switch (cmd_data.data[i]) {
+    case CALC_CMD_LOAD:
+      stack[stack_count++] = num_data.data[num_index++];
+      continue;
+    case CALC_CMD_ADD:
+      stack[stack_count - 2] = stack[stack_count - 2] + stack[stack_count - 1];
+      stack_count--;
+      continue;
+    case CALC_CMD_SUB:
+      stack[stack_count - 2] = stack[stack_count - 2] - stack[stack_count - 1];
+      stack_count--;
+      continue;
+    case CALC_CMD_MUL:
+      stack[stack_count - 2] = stack[stack_count - 2] * stack[stack_count - 1];
+      stack_count--;
+      continue;
+    case CALC_CMD_DIV:
+      stack[stack_count - 2] = stack[stack_count - 2] / stack[stack_count - 1];
+      stack_count--;
+      continue;
+    case CALC_CMD_NEG:
+      stack[stack_count - 1] = -stack[stack_count - 1];
+      continue;
+    default:
+      continue;
+    }
+  }
+
+  return stack[stack_count - 1];
 }
 
 #endif // CALC_IMPLEMENTATION
