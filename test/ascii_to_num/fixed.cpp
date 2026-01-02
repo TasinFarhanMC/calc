@@ -14,7 +14,13 @@ static CalcNum parse_num(const char *str, const char **endptr = nullptr) {
   return num;
 }
 
-#define REQUIRE_NUM_EQ(actual, expected) REQUIRE((CalcUint)(actual) - (CalcUint)std::lround((double)(expected) * (1ULL << CALC_SHIFT)) <= 1)
+#define REQUIRE_NUM_EQ(actual, expected)                                                                                                               \
+  do {                                                                                                                                                 \
+    CalcUint _actual = actual;                                                                                                                         \
+    CalcUint _expected = (CalcUint)std::lround((double)(expected) * CALC_CAST_NUM(1));                                                                 \
+    CAPTURE(_actual, _expected);                                                                                                                       \
+    REQUIRE(_actual - _expected <= 1);                                                                                                                 \
+  } while (0)
 
 TEST_CASE("Fixed: Integer parsing") {
   SECTION("Positive integer") { REQUIRE_NUM_EQ(parse_num("123"), 123); }

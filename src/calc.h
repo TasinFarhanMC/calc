@@ -80,28 +80,23 @@ typedef enum {
   (CalcCmdData) { (ptr), 0, (capacity) }
 
 CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, const CalcByte *stop); // Nullable end
-
 CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
 CALC_LINKAGE CalcError
 calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data);
 
-CALC_LINKAGE CalcError calc_to_rpn(CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_gen_rpn(CalcCmdData cmds, CalcCmdData *rpn);
-
-CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
+CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn);                      // Same Data can struct can be used as output
+CALC_LINKAGE CalcNum calc_evaluate_rpn(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error); // Nullable error
 
 // TODO:
 // CalcUInt calc_fixed_to_asciz(CalcNum, CalcByte*, ...);
 // CalcUInt calc_fixed_to_asciz_with_alloc(CalcNum. CalcByte**, ...);
 
 #ifdef CALC_ALLOC
-CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *nums, CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *nums, CalcCmdData *cmds);
+CALC_LINKAGE CalcError calc_parse_ascii_with_alloc(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
+CALC_LINKAGE CalcError calc_parse_ascii_till_with_alloc(const CalcByte *str, CalcByte c, CalcUint count, CalcNumData *num_data, CalcCmdData *cmd_data);
 
-CALC_LINKAGE CalcError calc_to_rpn_with_alloc(CalcCmdData *cmds);
-CALC_LINKAGE CalcError calc_gen_rpn_with_alloc(CalcCmdData cmds, CalcCmdData *rpn);
-
-CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmds, CalcNumData nums, CalcError *error); // Nullable error
+CALC_LINKAGE CalcError calc_convert_rpn_with_alloc(CalcCmdData cmd_data, CalcCmdData *rpn); // Same Data can struct can be used as output
+CALC_LINKAGE CalcNum calc_evaluate_rpn_with_alloc(CalcCmdData cmd_data, CalcNumData num_data, CalcError *error); // Nullable error
 #endif
 
 #ifdef CALC_INT
@@ -394,6 +389,61 @@ calc_parse_ascii_till(const CalcByte *str, const CalcByte *stop, CalcByte c, Cal
 
   num_data->length = num_count;
   cmd_data->length = cmd_count;
+  return CALC_ERROR_NONE;
+}
+
+static CalcByte calc_op_precedence[8] = {1, 1, 1, 3, 2, 2, 0, 0};
+static CalcByte calc_op_left[8] = {0, 1, 1, 0, 1, 1, 0, 0};
+
+CALC_LINKAGE CalcError calc_convert_rpn(CalcCmdData cmd_data, CalcCmdData *rpn) {
+  CalcCmd stack[CALC_STACK_SIZE];
+  CalcUint stack_count = 0;
+  CalcUint output_count = 0;
+
+  if (cmd_data.length > rpn->capacity) { return CALC_ERROR_OVERFLOW; }
+
+  for (CalcUint i = 0; i < cmd_data.length; i++) {
+    CalcCmd cmd = cmd_data.data[i];
+
+    if ((unsigned)cmd - 1 <= 4) { // if normal cmd
+      if (stack_count == CALC_STACK_SIZE) { return CALC_ERROR_OVERFLOW; }
+
+      while (stack_count && calc_op_precedence[stack[stack_count - 1]] >= calc_op_precedence[cmd] && calc_op_left[cmd]) {
+        rpn->data[output_count++] = stack[--stack_count];
+      }
+
+      stack[stack_count++] = cmd;
+      continue;
+    }
+
+    switch (cmd) {
+    case CALC_CMD_LOAD:
+      rpn->data[output_count++] = CALC_CMD_LOAD;
+      continue;
+    case CALC_CMD_L_BRACE:
+      if (stack_count == CALC_STACK_SIZE) { return CALC_ERROR_OVERFLOW; }
+      stack[stack_count++] = CALC_CMD_L_BRACE;
+      continue;
+    case CALC_CMD_R_BRACE:
+      while (stack_count && stack[stack_count - 1] != CALC_CMD_L_BRACE) {
+        rpn->data[output_count++] = stack[stack_count - 1];
+        stack_count--;
+      }
+
+      if (!stack_count) { return CALC_ERROR_UNKNOWN_SYMBOL; }
+      --stack_count;
+      continue;
+    default:
+      return CALC_ERROR_UNKNOWN_SYMBOL;
+    }
+  }
+
+  while (stack_count) {
+    rpn->data[output_count++] = stack[stack_count - 1];
+    stack_count--;
+  }
+
+  rpn->length = output_count;
   return CALC_ERROR_NONE;
 }
 
