@@ -71,13 +71,23 @@ typedef enum {
 #define CALC_LINKAGE extern
 #endif
 
-#define CALC_NUM_DATA_NULL (CalcNumData) {0, 0, 0}
-#define CALC_CMD_DATA_NULL (CalcCmdData) {0, 0, 0}
+#ifdef __cplusplus
 
-#define CALC_NUM_DATA(ptr, capacity)                                                                                                                   \
-  (CalcNumData) { (ptr), 0, (capacity) }
-#define CALC_CMD_DATA(ptr, capacity)                                                                                                                   \
-  (CalcCmdData) { (ptr), 0, (capacity) }
+#define CALC_NUM_DATA_NULL CalcNumData{0,0,0}
+#define CALC_CMD_DATA_NULL CalcCmdData{0,0,0}
+
+#define CALC_NUM_DATA(ptr, capacity) CalcNumData{ (ptr), 0, (capacity) }
+#define CALC_CMD_DATA(ptr, capacity) CalcCmdData{ (ptr), 0, (capacity) }
+
+#else
+
+#define CALC_NUM_DATA_NULL (CalcNumData){0,0,0}
+#define CALC_CMD_DATA_NULL (CalcCmdData){0,0,0}
+
+#define CALC_NUM_DATA(ptr, capacity) (CalcNumData){ (ptr), 0, (capacity) }
+#define CALC_CMD_DATA(ptr, capacity) (CalcCmdData){ (ptr), 0, (capacity) }
+
+#endif
 
 CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end, const CalcByte *stop); // Nullable end
 CALC_LINKAGE CalcError calc_parse_ascii(const CalcByte *str, CalcUint size, CalcNumData *num_data, CalcCmdData *cmd_data);
