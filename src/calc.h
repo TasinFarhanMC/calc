@@ -18,8 +18,8 @@ typedef unsigned CALC_INT CalcUint;
 typedef CALC_FLOAT CalcNum;
 typedef CALC_FLOAT CalcFloat;
 
-typedef long CalcInt;
-typedef unsigned long CalcUint;
+typedef long long CalcInt;
+typedef unsigned long long CalcUint;
 
 #define CALC_CAST_NUM(x) ((CalcNum)(x))
 #define CALC_MAX_FRACT_DIGIT (20) // TODO: CREATE MAX FOR FLOATING TYPE
