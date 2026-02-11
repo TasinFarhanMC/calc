@@ -175,7 +175,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     ptr++;
   }
 
-  while (ptr < stop && *ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
+  while (ptr < stop && (unsigned)(*ptr -'0') <= 9 ) { num = num * 10 + *ptr++ - '0'; }
   num = CALC_CAST_NUM(num);
 
   if (ptr == stop) { 
@@ -190,7 +190,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     CalcUint scale = 1;
     CalcUint digits = 0;
 
-    while (ptr < stop && *ptr >= '0' && *ptr <= '9' && ++digits < CALC_MAX_FRACT_DIGIT) {
+    while (ptr < stop && ((unsigned)(*ptr - '0') <= 9) && ++digits < CALC_MAX_FRACT_DIGIT) {
       fract = (fract * 10) + (*ptr++ - '0');
       scale *= 10;
     }
@@ -201,13 +201,13 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
       return num = sign;
     }
 
-    if (*ptr >= '5' && *ptr <= '9') {
+    if (((unsigned)(*ptr - '5') <= 4)) { // 5 to 9
       fract++;
       ptr++;
     }
 
     num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
-    while (ptr < stop && *ptr >= '0' && *ptr <= '9') { ptr++; }
+    while (ptr < stop && ((unsigned)(*ptr - '0') <= 9)) { ptr++; }
 
     if (ptr == stop) { 
       if (end) { *end = ptr; }
@@ -229,7 +229,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     }
 
     CalcUint exponent = 0;
-    while (*ptr >= '0' && *ptr <= '9' && ptr < stop) { exponent = (exponent * 10) + (*ptr++ - '0'); }
+    while (((unsigned)(*ptr - '0') <= 9) && ptr < stop) { exponent = (exponent * 10) + (*ptr++ - '0'); }
 
     CalcNum power = 1;
     CalcNum base = 10;
