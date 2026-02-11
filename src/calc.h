@@ -178,6 +178,8 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
   while (ptr < stop && *ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
   num = CALC_CAST_NUM(num);
 
+  if (ptr == stop) { num *= sign; goto END;}
+
   if (*ptr == '.') {
     ptr++;
 
@@ -238,8 +240,8 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     }
   }
 
+END:
   if (end) { *end = ptr; }
-
   return num;
 }
 
