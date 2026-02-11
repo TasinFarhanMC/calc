@@ -198,7 +198,7 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     if (ptr == stop) {
       num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
       if (end) { *end = ptr; }
-      return num = sign;
+      return num * sign;
     }
 
     if (((unsigned)(*ptr - '5') <= 4)) { // 5 to 9
