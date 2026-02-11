@@ -178,7 +178,10 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
   while (ptr < stop && *ptr >= '0' && *ptr <= '9') { num = num * 10 + *ptr++ - '0'; }
   num = CALC_CAST_NUM(num);
 
-  if (ptr == stop) { num *= sign; goto END;}
+  if (ptr == stop) { 
+    if (end) { *end = ptr; }
+    return num * sign;
+  }
 
   if (*ptr == '.') {
     ptr++;
@@ -194,7 +197,8 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
 
     if (ptr == stop) {
       num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
-      return num * sign;
+      if (end) { *end = ptr; }
+      return num = sign;
     }
 
     if (*ptr >= '5' && *ptr <= '9') {
@@ -205,7 +209,10 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     num += CALC_DIV_VALUE_JUSTIFIED(CALC_CAST_NUM(fract), scale, 1);
     while (ptr < stop && *ptr >= '0' && *ptr <= '9') { ptr++; }
 
-    if (ptr == stop) { return num * sign; }
+    if (ptr == stop) { 
+      if (end) { *end = ptr; }
+      return num * sign;
+    }
   }
 
   num *= sign;
@@ -240,7 +247,6 @@ CALC_LINKAGE CalcNum calc_ascii_to_num(const CalcByte *str, const CalcByte **end
     }
   }
 
-END:
   if (end) { *end = ptr; }
   return num;
 }
