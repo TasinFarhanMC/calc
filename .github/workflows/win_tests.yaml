@@ -1,4 +1,4 @@
-name: Build and Test Windows
+name: Build and Test
 
 on:
   push:
@@ -57,8 +57,8 @@ jobs:
         with:
           name: tests-windows-${{ matrix.compiler }}
           path: |
-            build/**/*.exe
-            build/**/*.pdb
+            build/**/tests.exe
+            build/**/tests.pdb
 
       - name: Run tests
         working-directory: build
