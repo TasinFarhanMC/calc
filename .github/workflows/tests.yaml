@@ -41,14 +41,16 @@ jobs:
         with:
           remove_stale_cache: false
 
-      - name: Configure with CMake
+      - name: Configure with CMake (Ninja)
         shell: bash
         run: |
           cmake -B build \
+                -G Ninja \
                 -DCALC_TESTS=ON \
                 -DCMAKE_BUILD_TYPE=Debug \
-                -DCMAKE_C_LAUNCER=ccache \
-                -DCMAKE_CXX_LAUNCER=ccache
+                -DCMAKE_C_LAUNCHER=ccache \
+                -DCMAKE_CXX_LAUNCHER=ccache \
+                -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ github.workspace }}/bin
 
       - name: Build
         run: cmake --build build
@@ -56,9 +58,11 @@ jobs:
       - name: Run tests
         working-directory: build
         shell: bash
-        run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ctest --output-on-failure -C Debug
-          else
-            ctest --output-on-failure
-          fi
+        run: ctest --output-on-failure
+
+      - name: Upload test binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.os }}
+          path: bin/tests*
+          if-no-files-found: error
