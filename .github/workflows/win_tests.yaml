@@ -56,8 +56,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tests-windows-${{ matrix.compiler }}
-          path: build/**/tests*
-          if-no-files-found: error
+          path: 
+          | build/**/*.exe
+            build/**/*.pdb
 
       - name: Run tests
         working-directory: build

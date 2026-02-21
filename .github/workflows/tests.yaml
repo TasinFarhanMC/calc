@@ -21,12 +21,7 @@ jobs:
 
       - name: Set CPM_SOURCE_CACHE
         shell: bash
-        run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            echo "CPM_SOURCE_CACHE=${{ github.workspace }}\\.cpm_cache" >> $GITHUB_ENV
-          else
-            echo "CPM_SOURCE_CACHE=${{ github.workspace }}/.cpm_cache" >> $GITHUB_ENV
-          fi
+        run: echo "CPM_SOURCE_CACHE=${{ github.workspace }}/.cpm_cache" >> $GITHUB_ENV
 
       - name: Restore CPM cache
         uses: actions/cache@v4
@@ -57,16 +52,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tests-${{ matrix.os }}
-          path: |
-            build/bin/tests*
+          path: bin/tests*
           if-no-files-found: error
 
       - name: Run tests
         working-directory: build
         shell: bash
-        run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ctest --output-on-failure -C Debug
-          else
-            ctest --output-on-failure
-          fi
+        run: ctest --output-on-failure
