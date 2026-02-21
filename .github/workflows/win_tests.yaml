@@ -1,0 +1,65 @@
+name: Build and Test Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    name: windows-${{ matrix.compiler }}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [cl, gcc]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set CPM_SOURCE_CACHE
+        shell: bash
+        run: echo "CPM_SOURCE_CACHE=${{ github.workspace }}/.cpm_cache" >> $GITHUB_ENV
+
+      - name: Restore CPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CPM_SOURCE_CACHE }}
+          key: windows-${{ matrix.compiler }}-cpm-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            windows-${{ matrix.compiler }}-cpm-
+
+      - name: Configure (MSVC)
+        if: matrix.compiler == 'cl'
+        shell: bash
+        run: |
+          cmake -B build \
+                -DCALC_TESTS=ON \
+                -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Configure (MinGW)
+        if: matrix.compiler == 'gcc'
+        shell: bash
+        run: |
+          cmake -B build \
+                -G "Ninja" \
+                -DCALC_TESTS=ON \
+                -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - name: Upload test binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-windows-${{ matrix.compiler }}
+          path: build/**/tests*
+          if-no-files-found: error
+
+      - name: Run tests
+        working-directory: build
+        shell: bash
+        run: ctest --output-on-failure -C Debug
