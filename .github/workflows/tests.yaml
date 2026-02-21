@@ -42,28 +42,15 @@ jobs:
           remove_stale_cache: false
 
       - name: Configure with CMake (Ninja)
-        shell: pwsh
+        shell: cmd
         run: |
-          if ($env:RUNNER_OS -eq "Windows") {
-              # Force MSVC with Ninja
-              cmake -B build `
-                    -G "Ninja" `
-                    -DCALC_TESTS=ON `
-                    -DCMAKE_BUILD_TYPE=Debug `
-                    -DCMAKE_C_COMPILER=cl.exe `
-                    -DCMAKE_CXX_COMPILER=cl.exe `
-                    -DCMAKE_C_LAUNCHER=ccache `
-                    -DCMAKE_CXX_LAUNCHER=ccache `
-                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ github.workspace }}\bin
-          } else {
-              cmake -B build `
-                    -G Ninja `
-                    -DCALC_TESTS=ON `
-                    -DCMAKE_BUILD_TYPE=Debug `
-                    -DCMAKE_C_LAUNCHER=ccache `
-                    -DCMAKE_CXX_LAUNCHER=ccache `
-                    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ github.workspace }}/bin
-          }
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            REM Use Ninja + MSVC automatically via cmd shell
+            cmake -B build -G "Ninja" -DCALC_TESTS=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin
+          else
+            cmake -B build -G Ninja -DCALC_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+                  -DCMAKE_C_LAUNCHER=ccache -DCMAKE_CXX_LAUNCHER=ccache \
+                  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${{ github.workspace }}/bin
 
       - name: Build
         run: cmake --build build
