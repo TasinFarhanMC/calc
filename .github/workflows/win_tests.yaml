@@ -38,7 +38,8 @@ jobs:
         run: |
           cmake -B build \
                 -DCALC_TESTS=ON \
-                -DCMAKE_BUILD_TYPE=Debug
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>"
 
       - name: Configure (MinGW)
         if: matrix.compiler == 'gcc'
@@ -47,7 +48,8 @@ jobs:
           cmake -B build \
                 -G "Ninja" \
                 -DCALC_TESTS=ON \
-                -DCMAKE_BUILD_TYPE=Debug
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
 
       - name: Build
         run: cmake --build build --config Debug
