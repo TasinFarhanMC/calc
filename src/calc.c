@@ -1,3 +1,3 @@
-#include "calc.h"
-
 #define CALC_IMPLEMENTATION
+
+#include "calc.h"
